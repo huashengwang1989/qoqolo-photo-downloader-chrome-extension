@@ -1,0 +1,49 @@
+.notification {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+
+  &.notification-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .notification-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--background-color);
+    border: 1px solid var(--primary-background-color);
+    border-radius: 0.25rem;
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--text-color) 20%, transparent);
+    color: var(--text-color);
+    font-size: 0.875rem;
+    max-width: 300px;
+    min-width: 200px;
+
+    .notification-close {
+      background: none;
+      border: none;
+      color: var(--text-color);
+      cursor: pointer;
+      font-size: 1.5rem;
+      line-height: 1;
+      padding: 0;
+      margin-left: auto;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+

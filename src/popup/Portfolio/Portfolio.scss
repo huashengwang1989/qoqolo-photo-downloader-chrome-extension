@@ -1,0 +1,114 @@
+@mixin link {
+  color: var(--link-text-color);
+  white-space: wrap;
+  word-break: break-all;
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--text-color);
+    text-decoration: underline;
+  }
+}
+
+.portfolio-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+
+  .portfolio-actions {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    margin: -1rem -1rem 0;
+    background-color: var(--background-color);
+    border-bottom: 1px solid color-mix(in srgb, var(--primary-background-color) 20%, transparent);
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--text-color) 10%, transparent);
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      svg {
+        width: 1em;
+        height: 1em;
+      }
+    }
+
+    .stop-button {
+      background-color: var(--warning-background-color);
+      color: var(--text-color-invert);
+      border: 1px solid var(--warning-background-color);
+
+      &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      &:hover:not(:disabled) {
+        background-color: color-mix(in srgb, var(--warning-background-color) 90%, black);
+      }
+    }
+  }
+
+  .portfolio-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+
+    .portfolio-item {
+      overflow: hidden;
+      padding: 0.75rem;
+      border: 1px solid var(--primary-background-color);
+      border-radius: 0.25rem;
+      background-color: color-mix(in srgb, var(--primary-background-color) 10%, transparent);
+
+      .item-section {
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+        font-size: 0.875rem;
+        line-height: 1.5;
+
+        strong {
+          font-weight: 600;
+          margin-right: 0.25rem;
+        }
+      }
+
+      .item-list {
+        margin: 0.25rem 0 0 1.5rem;
+        padding: 0;
+        list-style-type: disc;
+
+        li {
+          margin-bottom: 0.25rem;
+
+          a {
+            @include link;
+          }
+        }
+      }
+
+      .item-link {
+        @include link;
+      }
+
+      .item-divider {
+        margin: 1rem 0;
+        border: none;
+        border-top: 1px solid color-mix(in srgb, var(--primary-background-color) 30%, transparent);
+      }
+    }
+
+    .empty-state {
+      padding: 2rem;
+      text-align: center;
+      color: color-mix(in srgb, var(--text-color) 60%, transparent);
+    }
+  }
+}

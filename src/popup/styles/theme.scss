@@ -1,0 +1,23 @@
+:root {
+  --background-color: #fff;
+  --text-color: #222;
+  --text-color-invert: #f1f1f1;
+  --primary-text-color: #26aa99;
+  --primary-background-color: #26aa99;
+  --warning-text-color: #ff4d4f;
+  --warning-background-color: #ff4d4f;
+  --link-text-color: #26aa99;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: #222;
+    --text-color: #f1f1f1;
+    --text-color-invert: #222;
+    --primary-text-color: #48ccbb;
+    --primary-background-color: #48ccbb;
+    --warning-text-color: #ff6f6f;
+    --warning-background-color: #ff6f6f;
+    --link-text-color: #48ccbb;
+  }
+}

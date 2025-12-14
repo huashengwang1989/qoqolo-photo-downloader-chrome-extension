@@ -1,0 +1,30 @@
+@use 'sass:color';
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 1rem;
+  background-color: var(--background-color);
+
+  h1 {
+    color: var(--text-color);
+    font-size: 1.5rem;
+  }
+
+  button {
+    background-color: var(--primary-background-color);
+    border: none;
+    color: var(--text-color);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 0.25rem;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--primary-background-color) 95%, white);
+    }
+
+    &:active {
+      background-color: color-mix(in srgb, var(--primary-background-color) 95%, black);
+    }
+  }
+}

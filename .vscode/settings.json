@@ -1,0 +1,16 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "always",
+    "source.fixAll.eslint": "always",
+    "source.fixAll.stylelint": "always"
+  },
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "eslint.useFlatConfig": true,
+  "eslint.validate": ["typescript", "typescriptreact", "javascript", "javascriptreact"],
+  "stylelint.enable": true,
+  "stylelint.validate": ["scss", "css", "sass"],
+  "typescript.tsdk": "node_modules/typescript/lib"
+}

@@ -1,0 +1,54 @@
+# =========================
+# Dependencies
+# =========================
+node_modules/
+.pnpm-store/
+
+# =========================
+# Build output
+# =========================
+dist/
+.vite/
+
+# =========================
+# Logs
+# =========================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+
+# VS Code (keep settings, ignore local state)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+*.local
+!.env.example
+
+# =========================
+# TypeScript
+# =========================
+*.tsbuildinfo
+
+# =========================
+# Chrome extension noise
+# =========================
+*.crx
+*.pem
+
+# =========================
+# Misc
+# =========================
+coverage/

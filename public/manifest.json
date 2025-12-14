@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Qoqolo Photo Downloader",
+  "version": "0.1.0",
+  "description": "Batch download and organize photos from Qoqolo",
+  "permissions": ["activeTab", "scripting", "cookies", "sidePanel", "storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup/index.html"
+  },
+  "side_panel": {
+    "default_path": "popup/index.html"
+  }
+}
