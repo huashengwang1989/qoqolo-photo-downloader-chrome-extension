@@ -4,6 +4,7 @@ export type {
   BackgroundMessage,
   BackgroundResponse,
   TabInfo,
+  MonthDate,
 } from './message';
 export type { PageType } from './page';
 export type CrawlItem = {

@@ -1,7 +1,7 @@
 import { sendMessageToContentScript } from './injectContentScript';
 
 import { SIGNALS } from '@/shared/enums';
-import type { ContentMessage } from '@/shared/types';
+import type { ContentMessage, MonthDate } from '@/shared/types';
 
 /**
  * Handle stop crawl action
@@ -35,10 +35,12 @@ export async function handleStopCrawl(onError?: (error: string) => void): Promis
 
 /**
  * Handle start crawl action
+ * @param dateRange - Optional date range filter (from/to months)
  * @param onStart - Callback when crawl starts successfully
  * @param onError - Callback when error occurs
  */
 export async function handleStartCrawl(
+  dateRange?: { from: MonthDate | null; to: MonthDate | null },
   onStart?: () => void,
   onError?: (error: string) => void,
 ): Promise<void> {
@@ -51,8 +53,11 @@ export async function handleStartCrawl(
   }
 
   const tabId = tab.id;
-  const message: ContentMessage = { type: SIGNALS.PORTFOLIO_START_CRAWL };
-  console.info('[popup] Starting crawl, sending message to tab:', tabId, tab.url);
+  const message: ContentMessage = {
+    type: SIGNALS.PORTFOLIO_START_CRAWL,
+    dateRange,
+  };
+  console.info('[popup] Starting crawl, sending message to tab:', tabId, tab.url, dateRange);
 
   await sendMessageToContentScript(
     tabId,

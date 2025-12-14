@@ -15,5 +15,6 @@ export type PortfolioItemDetails = {
 export type PortfolioItem = {
   link: string;
   title: string;
+  itemCode?: string; // Extracted from foliette-item wrapper id
   details?: PortfolioItemDetails;
 };

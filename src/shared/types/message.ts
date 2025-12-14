@@ -3,8 +3,16 @@ import { SIGNALS } from '../enums';
 import type { PageType } from './page';
 import type { PortfolioItem } from './portfolio';
 
+export type MonthDate = {
+  year: number;
+  month: number; // 1-12
+};
+
 export type ContentMessage =
-  | { type: SIGNALS.PORTFOLIO_START_CRAWL }
+  | {
+      type: SIGNALS.PORTFOLIO_START_CRAWL;
+      dateRange?: { from: MonthDate | null; to: MonthDate | null };
+    }
   | { type: SIGNALS.PORTFOLIO_STOP_CRAWL }
   | { type: SIGNALS.PING };
 

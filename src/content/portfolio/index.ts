@@ -4,7 +4,8 @@ import { handleCrawlItem } from './helpers/handleCrawlItem';
 import { SIGNALS } from '@/shared/enums';
 import { getPageType } from '@/shared/helpers/page';
 import { sleep } from '@/shared/helpers/utils';
-import type { ContentMessage, ContentResponse } from '@/shared/types';
+import { MAX_CRAWL_COUNT_PER_TIME } from '@/configs';
+import type { ContentMessage, ContentResponse, MonthDate } from '@/shared/types';
 import type { PortfolioItem } from '@/shared/types/portfolio';
 
 const STORAGE_KEY = 'portfolioCrawlItems';
@@ -26,8 +27,8 @@ export function handlePortfolioMessage(
       sendResponse({ ok: false });
       return true;
     }
-    console.info('[content] handlePortfolioMessage - Starting crawl');
-    startCrawl().catch(console.error);
+    console.info('[content] handlePortfolioMessage - Starting crawl', message.dateRange);
+    startCrawl(message.dateRange).catch(console.error);
     sendResponse({ ok: true });
     return true;
   }
@@ -44,8 +45,12 @@ export function handlePortfolioMessage(
 
 /**
  * Start crawling portfolio items
+ * @param dateRange - Optional date range filter
  */
-async function startCrawl(): Promise<void> {
+async function startCrawl(dateRange?: {
+  from: MonthDate | null;
+  to: MonthDate | null;
+}): Promise<void> {
   const pageType = getPageType(location.href);
   if (!pageType || pageType !== 'qoqoloPortfolioPage') {
     console.warn('[crawler] Not on expected page');
@@ -72,7 +77,7 @@ async function startCrawl(): Promise<void> {
     console.error('[crawler] Failed to clear previous items:', error);
   }
 
-  const items = collectItems({ maxCount: 5 });
+  const items = collectItems({ maxCount: MAX_CRAWL_COUNT_PER_TIME });
   const processedItems: PortfolioItem[] = [];
 
   // If no items found, send completion signal immediately
@@ -128,7 +133,14 @@ async function startCrawl(): Promise<void> {
       return;
     }
 
-    const result = await handleCrawlItem(item);
+    const result = await handleCrawlItem(item, dateRange);
+
+    // Skip items that are out of date range
+    if (result.hasIssue === 'out-of-date-range') {
+      console.info('[crawler] Skipping item out of date range', item.link);
+      continue;
+    }
+
     processedItems.push(result.itemWithDetails);
 
     // Log issue if any

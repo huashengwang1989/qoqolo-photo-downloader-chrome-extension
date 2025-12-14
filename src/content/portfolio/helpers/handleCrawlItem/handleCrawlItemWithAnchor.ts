@@ -42,17 +42,39 @@ export async function handleCrawlItemWithAnchor(
   // Process modal content to extract details
   const details = processModalContent(modal);
 
+  // Compare publishDate from modal vs wrapper
+  if (item.details?.publishDate && details.publishDate) {
+    if (item.details.publishDate !== details.publishDate) {
+      console.warn(
+        '[crawler] Publish date mismatch between wrapper and modal',
+        item.link,
+        'Wrapper:',
+        item.details.publishDate,
+        'Modal:',
+        details.publishDate,
+      );
+      // Use modal's date as priority
+    }
+  }
+
   if (closeButton) {
     closeButton.click();
     // Wait 500ms after clicking close button
     await sleep(500);
   }
 
+  // Merge details: use modal's publishDate as priority, but keep itemCode from wrapper
+  const finalDetails = {
+    ...details,
+    publishDate: details.publishDate || item.details?.publishDate || '', // Modal date takes priority
+  };
+
   // Stage 1: return item with details
   return {
     itemWithDetails: {
       ...item,
-      details,
+      details: finalDetails,
+      itemCode: item.itemCode, // Preserve itemCode from wrapper
     },
     hasIssue: false,
     crawledFrom: undefined,
