@@ -77,4 +77,3 @@ const PortfolioItem: React.FC<PortfolioItemProps> = ({ item, index, totalItems }
 };
 
 export default PortfolioItem;
-

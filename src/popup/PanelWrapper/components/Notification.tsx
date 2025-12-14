@@ -39,4 +39,3 @@ const Notification: React.FC<NotificationProps> = ({ message, duration = 5000, o
 };
 
 export default Notification;
-
