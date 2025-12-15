@@ -1,6 +1,7 @@
 export type PortfolioItemImage = {
   url: string;
   caption: string | undefined;
+  exportFilename: string;
 };
 
 export type PortfolioItemDetails = {

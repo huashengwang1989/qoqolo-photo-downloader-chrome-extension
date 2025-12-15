@@ -1,4 +1,5 @@
 import type { PortfolioItemImage } from '@/shared/types/portfolio';
+import { buildImageExportFilename } from '@/shared/helpers/imageExport';
 
 /**
  * Extract images from modal carousel
@@ -15,7 +16,7 @@ export function extractImages(modal: HTMLDivElement): PortfolioItemImage[] {
 
   const imageLinks = carouselLinks.querySelectorAll<HTMLAnchorElement>('a.bi-gallery-item');
 
-  imageLinks.forEach((link) => {
+  imageLinks.forEach((link, index) => {
     // Get image URL from href attribute
     const href = link.getAttribute('href');
     if (!href) {
@@ -36,7 +37,9 @@ export function extractImages(modal: HTMLDivElement): PortfolioItemImage[] {
       }
     }
 
-    images.push({ url, caption });
+    const exportFilename = buildImageExportFilename(index, url);
+
+    images.push({ url, caption, exportFilename });
   });
 
   return images;
