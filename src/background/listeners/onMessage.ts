@@ -46,7 +46,15 @@ export function setupOnMessageListener() {
             const tabInfo = await getTabInfo(tab.id);
             sendResponse({ tabInfo });
           } else {
-            sendResponse({ tabInfo: { isSupported: false, pageType: null, url: null } });
+            sendResponse({
+              tabInfo: {
+                isSupported: false,
+                pageType: null,
+                isQoqoloSite: false,
+                logoUrl: null,
+                url: null,
+              },
+            });
           }
         });
         return true; // Async response

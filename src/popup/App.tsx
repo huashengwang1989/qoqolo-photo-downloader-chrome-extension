@@ -13,11 +13,15 @@ import type { TabInfo } from '@/shared/types';
 const App: React.FC = () => {
   const [isSupported, setIsSupported] = useState<boolean | null>(null);
   const [pageType, setPageType] = useState<TabInfo['pageType']>(null);
+  const [isQoqoloSite, setIsQoqoloSite] = useState<boolean>(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const handleTabInfoUpdate = (tabInfo: TabInfo) => {
       setIsSupported(tabInfo.isSupported);
       setPageType(tabInfo.pageType);
+      setIsQoqoloSite(tabInfo.isQoqoloSite);
+      setLogoUrl(tabInfo.logoUrl);
     };
 
     // Initial check
@@ -43,7 +47,8 @@ const App: React.FC = () => {
     <PanelWrapper
       isLoading={isSupported === null}
       isSupported={isSupported ?? false}
-      notSupportedMessage="This page is not supported."
+      isQoqoloSite={isQoqoloSite}
+      logoUrl={logoUrl}
     >
       {renderedContent}
     </PanelWrapper>

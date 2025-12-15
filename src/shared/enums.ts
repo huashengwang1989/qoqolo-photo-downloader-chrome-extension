@@ -28,4 +28,7 @@ export enum SIGNALS {
   PORTFOLIO_ITEMS_UPDATED = 23,
   PORTFOLIO_ITEM_ADDED = 24,
   PORTFOLIO_CRAWL_COMPLETE = 25,
+
+  // Logo extraction signal
+  GET_LOGO = 30,
 }

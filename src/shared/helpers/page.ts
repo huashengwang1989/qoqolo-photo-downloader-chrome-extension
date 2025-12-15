@@ -1,7 +1,7 @@
 import type { PageType } from '../types/page';
 
 /**
- * Portofolios page: https://<customer_code>.qoqolo.com/cos/o.x?c=/<hash>/folio
+ * Portfolios page: https://<customer_code>.qoqolo.com/cos/o.x?c=/<hash>/folio
  */
 export const PAGE_REGEX_CHECKS: Record<PageType, RegExp | ((url: string) => boolean)> = {
   qoqoloPortfolioPage: /^https:\/\/.+\.qoqolo\.com\/cos\/o\.x\?c=\/.+\/folio/,

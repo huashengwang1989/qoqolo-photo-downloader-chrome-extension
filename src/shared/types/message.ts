@@ -14,11 +14,14 @@ export type ContentMessage =
       dateRange?: { from: MonthDate | null; to: MonthDate | null };
     }
   | { type: SIGNALS.PORTFOLIO_STOP_CRAWL }
-  | { type: SIGNALS.PING };
+  | { type: SIGNALS.PING }
+  | { type: SIGNALS.GET_LOGO };
 
 export type TabInfo = {
   isSupported: boolean;
   pageType: PageType | null;
+  isQoqoloSite: boolean;
+  logoUrl: string | null;
   url: {
     fullUrl: string;
     protocol: string;
@@ -43,7 +46,7 @@ export type BackgroundMessage =
   | { type: SIGNALS.PORTFOLIO_ITEMS_GET };
 
 // Content script responses
-export type ContentResponse = { ok: boolean };
+export type ContentResponse = { ok: boolean } | { logoUrl: string | null };
 
 // Background script responses - discriminated by request type
 export type BackgroundResponse =

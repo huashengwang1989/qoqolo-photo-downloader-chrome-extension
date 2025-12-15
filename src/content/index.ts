@@ -1,4 +1,5 @@
 import { handlePortfolioMessage } from './portfolio';
+import { extractLogo } from './helpers/extractLogo';
 
 import { SIGNALS } from '@/shared/enums';
 import type { ContentMessage, ContentResponse } from '@/shared/types';
@@ -22,6 +23,13 @@ chrome.runtime.onMessage.addListener(
     // Handle common messages
     if (message.type === SIGNALS.PING) {
       sendResponse({ ok: true });
+      return true;
+    }
+
+    // Handle logo extraction
+    if (message.type === SIGNALS.GET_LOGO) {
+      const logoUrl = extractLogo();
+      sendResponse({ logoUrl });
       return true;
     }
   },

@@ -8,6 +8,7 @@ import { generateZipBlob } from './utils/generateZipBlob';
 import { triggerDownload } from './utils/triggerDownload';
 
 import { generateActivityFolderName } from '@/shared/helpers/activityFolderName';
+import { sleep } from '@/shared/helpers/utils';
 import type { PortfolioItem } from '@/shared/types/portfolio';
 
 /**
@@ -63,6 +64,7 @@ export async function exportPortfolioBatch(
             downloadedImages++;
             // Update progress
             onProgress?.(downloadedImages, totalImages);
+            await sleep(300); // Do not give too much pressure to the server
           } catch (error) {
             console.error('[popup] Failed to download image', image.url, error);
             // Continue with other images even if one fails
