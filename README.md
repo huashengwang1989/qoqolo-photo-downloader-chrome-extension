@@ -2,13 +2,15 @@
 
 A Chrome (Manifest V3) extension written in TypeScript to crawl and organize photos from Qoqolo, a school-parent platform developed by CommonTown.
 
+Refer to the [User README](./README_USER.md) if you simply wish to use this extension in Google Chrome.
+
 ## Disclaimer
 
 ### With Qoqolo
 
 This plugin is to meet my own needs for retrieving and organizing photos from the platform for my children.
 
-This plugin is not affiliated with Qoqolo or CommonTown.
+This plugin is not affiliated with Qoqolo, CommonTown or any school.
 
 ### AI
 
@@ -20,20 +22,21 @@ The code is mostly done via Vibe Coding, although all code is curated.
 
 There is zero server communication for this plugin. It retrieves data based on what you, as a human, may see when entering a page. In technical terms, it is done via parsing the DOM and extracting text from DOM content.
 
-## Functionalities (Planned)
+## Functionalities
 
-The extension:
+### Portfolio Activities Extraction (Implemented)
 
-- Runs only on expected pages (Currently, "Portfolios > Activity > Recent" page)
+Extracts portfolio activities from the **Portfolios > Activity > Recent** page with date range filtering, real-time crawling, and comprehensive data extraction (images, content, metadata). Supports individual item copy/export and batch download as ZIP files. Includes session expiry detection, logo extraction, and dual popup/side panel view modes.
 
-- Compiles photos and meta information into individual folders based on activity, zips them, and allows users to download thereafter (TODO).
+### Screenshot
+
+<img src="./doc/dl-portfolio-interface.png" alt="Qoqolo Photo Downloader Portfolio Interface" width="360" />
+
+The extension UI showing the Portfolio page interface with date range selectors, crawl controls, and extracted portfolio item details.
 
 ### Planned Functionalities
 
-- Portfolio activities extraction
-
 - Class activity extraction
-
 - Check-in / check-out photos extraction
 
 ## Tech Stack
@@ -44,6 +47,7 @@ The extension:
 - Vite 5
 - pnpm
 - Font Awesome (React)
+- JSZip (for ZIP file generation)
 - ESLint + Prettier
 - Sass/SCSS
 
@@ -153,12 +157,12 @@ Popup <--> Background <--> Content Script <--> Page DOM
 
 This project follows the standard Chrome Extension (Manifest V3) structure. Here's a brief overview of the key folders in `src/`:
 
-| Folder        | Purpose                                                                                                                                                                                                                                                                                |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `content/`    | **Content scripts** run inside the web page context. They can read and manipulate the DOM, click links, and access page content. Contains portfolio-specific crawling logic in `portfolio/` subfolder with modular helpers for item collection, modal processing, and data extraction. |
-| `background/` | **Background service worker** runs independently of any page. Handles tab state management, messaging coordination, and view mode preferences. Organized into `helpers/` and `listeners/` subfolders for better code organization.                                                     |
-| `popup/`      | **React-based extension UI** (popup and side panel). Contains `App.tsx` as the main component, `PanelWrapper/` for common UI with toggle functionality, and `Portfolio/` for portfolio-specific UI. Uses React hooks and components for state management.                              |
-| `shared/`     | **Shared code** including type definitions (`types/`), signal enums (`enums.ts`), helper functions (`helpers/`), and utility functions (`utils/`). Ensures type safety and code reuse across content scripts, background, and popup.                                                   |
+| Folder        | Purpose                                                                                                                                                                                                                                                                                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `content/`    | **Content scripts** run inside the web page context. They can read and manipulate the DOM, click links, and access page content. Contains portfolio-specific crawling logic in `portfolio/` subfolder with modular helpers for item collection, modal processing, data extraction, and logo extraction.                                  |
+| `background/` | **Background service worker** runs independently of any page. Handles tab state management, messaging coordination, view mode preferences, and logo URL storage. Organized into `helpers/` and `listeners/` subfolders for better code organization.                                                                                     |
+| `popup/`      | **React-based extension UI** (popup and side panel). Contains `App.tsx` as the main component, `PanelWrapper/` for common UI with toggle functionality and logo display, and `Portfolio/` for portfolio-specific UI with date filtering, crawl controls, and export functionality. Uses React hooks and components for state management. |
+| `shared/`     | **Shared code** including type definitions (`types/`), signal enums (`enums.ts`), helper functions (`helpers/`), utility functions (`utils/`), and reusable components (e.g., `CrawlActionsBar`). Ensures type safety and code reuse across content scripts, background, and popup.                                                      |
 
 In Chrome Extension MV3, the **content script** interacts with the page, the **background script** manages persistent logic and messaging, and the **popup** is the user-facing interface. The extension supports both popup and side panel views, with a toggle button to switch between them. Using `shared/` for types and common helpers ensures consistency across these parts.
 
@@ -188,9 +192,9 @@ flowchart TD
 
 **Explanation:**
 
-- **Popup → Background**: Popup UI sends messages for view mode toggles, tab info requests, and preference management.
-- **Popup → Content Script**: Popup can send messages directly to content scripts (e.g., start crawling) via `chrome.tabs.sendMessage()`.
-- **Background → Popup**: Background notifies popup about tab updates and state changes via `chrome.runtime.sendMessage()`.
-- **Background → Content Script**: Background can relay messages or handle cross-tab communication.
-- **Content Script → Background**: Content script sends crawl results and status updates to background, which forwards to popup.
-- **Content Script → Page DOM**: Content script reads and modifies the web page, clicks links, waits for modals, and extracts portfolio data.
+- **Popup → Background**: Popup UI sends messages for view mode toggles, tab info requests (including logo extraction), and preference management.
+- **Popup → Content Script**: Popup can send messages directly to content scripts (e.g., start/stop crawling with date range filters) via `chrome.tabs.sendMessage()`.
+- **Background → Popup**: Background notifies popup about tab updates, state changes, and logo URL updates via `chrome.runtime.sendMessage()`.
+- **Background → Content Script**: Background can relay messages or handle cross-tab communication. Also extracts logo from content script when on Qoqolo sites.
+- **Content Script → Background**: Content script sends crawl results, status updates, and logo URLs to background, which forwards to popup.
+- **Content Script → Page DOM**: Content script reads and modifies the web page, clicks links, waits for modals, extracts portfolio data (images, content, metadata), detects session expiry, and extracts logo from navbar.
