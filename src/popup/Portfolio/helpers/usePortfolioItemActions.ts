@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { exportPortfolioItem } from './exportPortfolioItem';
+import { exportPortfolioItem } from './export';
 import { buildMarkdownFromItem } from './buildMarkdown';
 
 import type { PortfolioItem as PortfolioItemType } from '@/shared/types/portfolio';

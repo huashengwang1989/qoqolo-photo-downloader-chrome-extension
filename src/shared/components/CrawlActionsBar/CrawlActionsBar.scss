@@ -73,5 +73,21 @@
       }
     }
   }
+
+  .crawl-actions-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: color-mix(in srgb, var(--text-color) 10%, transparent);
+    overflow: hidden;
+
+    .crawl-actions-progress-bar {
+      height: 100%;
+      background-color: var(--primary-background-color);
+      transition: width 0.2s ease-out;
+    }
+  }
 }
 

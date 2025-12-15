@@ -1,27 +1,13 @@
 import JSZip from 'jszip';
 
-import { buildMarkdownFromItem } from './buildMarkdown';
+import { buildMarkdownFromItem } from '../buildMarkdown';
+
+import { downloadImage } from './utils/downloadImage';
+import { generateZipBlob } from './utils/generateZipBlob';
+import { triggerDownload } from './utils/triggerDownload';
 
 import { generateActivityFolderName } from '@/shared/helpers/activityFolderName';
 import type { PortfolioItem } from '@/shared/types/portfolio';
-
-/**
- * Download an image from a URL and return as blob
- */
-async function downloadImage(url: string): Promise<Blob> {
-  try {
-    const response = await fetch(url, {
-      credentials: 'include', // Include cookies for authenticated requests
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to download image: ${response.statusText}`);
-    }
-    return await response.blob();
-  } catch (error) {
-    console.error('[popup] Failed to download image', url, error);
-    throw error;
-  }
-}
 
 /**
  * Export portfolio item as a zip file containing images, README.md, and data.json
@@ -59,37 +45,16 @@ export async function exportPortfolioItem(item: PortfolioItem): Promise<void> {
 
     // Generate zip file
     console.info('[popup] Generating zip file...');
-    const zipBlob = await zip.generateAsync(
-      {
-        type: 'blob',
-        compression: 'DEFLATE',
-        compressionOptions: { level: 6 },
-      },
-      (metadata) => {
-        // Optional: show progress
-        if (metadata.percent) {
-          console.info(`[popup] Zip progress: ${Math.round(metadata.percent)}%`);
-        }
-      },
-    );
+    const zipBlob = await generateZipBlob(zip, (percent) => {
+      console.info(`[popup] Zip progress: ${Math.round(percent)}%`);
+    });
 
     // Create download filename using generateActivityFolderName
     const folderName = generateActivityFolderName(item);
     const filename = `${folderName}.zip`;
 
     // Trigger download
-    const url = URL.createObjectURL(zipBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // Clean up
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 100);
+    triggerDownload(zipBlob, filename);
 
     console.info('[popup] Export completed:', filename);
   } catch (error) {

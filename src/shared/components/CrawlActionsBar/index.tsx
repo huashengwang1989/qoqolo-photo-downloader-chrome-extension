@@ -25,6 +25,10 @@ export interface CrawlActionsBarProps {
   maxCrawlCount: number;
   /** Whether to show download button */
   showDownload?: boolean;
+  /** Download progress: number of images downloaded */
+  downloadProgress?: number;
+  /** Download progress: total number of images */
+  downloadTotal?: number;
 }
 
 /**
@@ -42,7 +46,13 @@ export const CrawlActionsBar: React.FC<CrawlActionsBarProps> = ({
   isStartDisabled = false,
   maxCrawlCount,
   showDownload = false,
+  downloadProgress = 0,
+  downloadTotal = 0,
 }) => {
+  // Calculate progress percentage (handle division by zero)
+  const progressPercent =
+    downloadTotal > 0 ? Math.min(100, Math.round((downloadProgress / downloadTotal) * 100)) : 100;
+
   return (
     <div className="crawl-actions-bar">
       <div className="crawl-actions-date-range">{dateRangeSection}</div>
@@ -71,6 +81,11 @@ export const CrawlActionsBar: React.FC<CrawlActionsBarProps> = ({
           </>
         )}
       </div>
+      {isDownloading && downloadTotal > 0 && (
+        <div className="crawl-actions-progress">
+          <div className="crawl-actions-progress-bar" style={{ width: `${progressPercent}%` }} />
+        </div>
+      )}
     </div>
   );
 };

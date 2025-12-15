@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { MonthDatePicker } from './components/MonthDatePicker';
 import PortfolioItem from './components/PortfolioItem';
 import { handleStartCrawl, handleStopCrawl } from './helpers/handleCrawlActions';
-import { exportPortfolioBatch } from './helpers/exportPortfolioBatch';
+import { exportPortfolioBatch } from './helpers/export';
 import { useCrawlControl } from './helpers/useCrawlControl';
 import { usePortfolioItems } from './helpers/usePortfolioItems';
 import { useDateStorage } from './helpers/useDateStorage/index';
@@ -18,6 +18,7 @@ import './Portfolio.scss';
 const Portfolio: React.FC = () => {
   const { items, setItems } = usePortfolioItems();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState({ downloaded: 0, total: 0 });
 
   // Date storage and validation
   const { dateFrom, dateTo, setDateFrom, setDateTo, maxDate, isDateRangeValid } = useDateStorage();
@@ -73,13 +74,21 @@ const Portfolio: React.FC = () => {
     }
 
     setIsDownloading(true);
+    setDownloadProgress({ downloaded: 0, total: 0 });
     try {
-      await exportPortfolioBatch(items);
+      // Calculate total images
+      const totalImages = items.reduce((sum, item) => sum + (item.details?.images?.length || 0), 0);
+      setDownloadProgress({ downloaded: 0, total: totalImages });
+
+      await exportPortfolioBatch(items, (downloaded, total) => {
+        setDownloadProgress({ downloaded, total });
+      });
     } catch (error) {
       console.error('[popup] Failed to export batch', error);
       window.alert('Failed to export batch. Please check the console for details.');
     } finally {
       setIsDownloading(false);
+      setDownloadProgress({ downloaded: 0, total: 0 });
     }
   }, [items, isDownloading, isLoading]);
 
@@ -114,6 +123,8 @@ const Portfolio: React.FC = () => {
         isStartDisabled={!isDateRangeValid}
         maxCrawlCount={MAX_CRAWL_COUNT_PER_TIME}
         showDownload={items.length > 0}
+        downloadProgress={downloadProgress.downloaded}
+        downloadTotal={downloadProgress.total}
       />
 
       <div className="portfolio-items">
