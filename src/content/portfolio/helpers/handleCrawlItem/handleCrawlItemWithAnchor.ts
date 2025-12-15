@@ -1,4 +1,5 @@
 import { processModalContent } from './processModalContent';
+import { handleLikelyLoginSessionExpired } from './helpers/handleLikelyLoginSessionExpired';
 
 import type { HandleCrawlItemResult } from './index';
 
@@ -36,8 +37,21 @@ export async function handleCrawlItemWithAnchor(
   // Wait one more second after modal appears
   await sleep(1000);
 
-  // Look for close button with data-bb-handler="cancel"
-  const closeButton = document.querySelector<HTMLButtonElement>('button[data-bb-handler="cancel"]');
+  // Look for close button
+  const closeButton =
+    modal.querySelector<HTMLButtonElement>('button.bootbox-close-button') ||
+    document.querySelector<HTMLButtonElement>('button[data-bb-handler="cancel"]');
+
+  // Detect likely login session expiry based on modal content
+  const isLikelyLoginSessionExpired = handleLikelyLoginSessionExpired(modal, closeButton ?? null);
+
+  if (isLikelyLoginSessionExpired) {
+    return {
+      itemWithDetails: item,
+      hasIssue: 'likely-login-session-expired',
+      crawledFrom: undefined,
+    };
+  }
 
   // Process modal content to extract details
   const details = processModalContent(modal);

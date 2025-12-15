@@ -141,6 +141,36 @@ async function startCrawl(dateRange?: {
       continue;
     }
 
+    // If login session is likely expired, stop crawling further items
+    if (result.hasIssue === 'likely-login-session-expired') {
+      console.warn('[crawler] Stopping crawl due to likely login session expiry');
+      isCrawling = false;
+      shouldStop = false;
+
+      try {
+        await chrome.storage.local.set({ [STORAGE_KEY]: processedItems });
+        chrome.runtime
+          .sendMessage({
+            type: SIGNALS.PORTFOLIO_ITEMS_UPDATED,
+            items: processedItems,
+          })
+          .catch(() => {
+            // No listeners, that's okay
+          });
+        chrome.runtime
+          .sendMessage({
+            type: SIGNALS.PORTFOLIO_CRAWL_COMPLETE,
+          })
+          .catch(() => {
+            // No listeners, that's okay
+          });
+      } catch (error) {
+        console.error('[crawler] Failed to store items after session expiry:', error);
+      }
+
+      return;
+    }
+
     processedItems.push(result.itemWithDetails);
 
     // Log issue if any

@@ -6,7 +6,12 @@ import type { PortfolioItem } from '@/shared/types/portfolio';
 
 export type HandleCrawlItemResult = {
   itemWithDetails: PortfolioItem;
-  hasIssue: false | 'missing-link-anchor' | 'missing-modal' | 'out-of-date-range';
+  hasIssue:
+    | false
+    | 'missing-link-anchor'
+    | 'missing-modal'
+    | 'out-of-date-range'
+    | 'likely-login-session-expired';
   crawledFrom: undefined; // future use
 };
 
