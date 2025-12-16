@@ -79,5 +79,18 @@ export function setupOnMessageListener() {
       });
       return true;
     }
+
+    if (
+      message.type === SIGNALS.CLASS_ACTIVITY_ITEMS_UPDATED ||
+      message.type === SIGNALS.CLASS_ACTIVITY_ITEM_ADDED
+    ) {
+      // Forward the message to popup/side panel if open
+      try {
+        chrome.runtime.sendMessage(message);
+      } catch (error) {
+        // No listeners, that's okay
+      }
+      return false; // Not a response message
+    }
   });
 }

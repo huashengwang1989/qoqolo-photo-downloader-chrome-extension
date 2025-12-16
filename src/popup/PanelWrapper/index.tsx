@@ -4,6 +4,7 @@ import PanelLayout from './components/PanelLayout';
 import {
   NonQoqoloSiteMessage,
   UnsupportedQoqoloPageMessage,
+  WrongClassActivityTabMessage,
 } from './components/NotSupportedMessage';
 
 import './PanelWrapper.scss';
@@ -14,6 +15,7 @@ interface PanelWrapperProps {
   isSupported?: boolean;
   isQoqoloSite?: boolean;
   logoUrl?: string | null;
+  wrongClassActivityTab?: boolean;
   notSupportedMessage?: string;
 }
 
@@ -23,12 +25,24 @@ const PanelWrapper: React.FC<PanelWrapperProps> = ({
   isSupported = true,
   isQoqoloSite = false,
   logoUrl = null,
+  wrongClassActivityTab = false,
   notSupportedMessage,
 }) => {
   if (isLoading) {
     return (
       <PanelLayout logoUrl={logoUrl}>
         <div>Loading...</div>
+      </PanelLayout>
+    );
+  }
+
+  // Check for wrong Class Activity tab first
+  if (wrongClassActivityTab) {
+    return (
+      <PanelLayout logoUrl={logoUrl}>
+        <div className="not-supported-wrapper">
+          <WrongClassActivityTabMessage />
+        </div>
       </PanelLayout>
     );
   }

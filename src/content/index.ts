@@ -1,4 +1,5 @@
 import { handlePortfolioMessage } from './portfolio';
+import { handleClassActivityMessage } from './classActivity';
 import { extractLogo } from './helpers/extractLogo';
 
 import { SIGNALS } from '@/shared/enums';
@@ -17,6 +18,11 @@ chrome.runtime.onMessage.addListener(
     console.info('[content] onMessage', message);
     // Route portfolio messages
     if (handlePortfolioMessage(message, sendResponse)) {
+      return true;
+    }
+
+    // Route class activity messages
+    if (handleClassActivityMessage(message, sendResponse)) {
       return true;
     }
 

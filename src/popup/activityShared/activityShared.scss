@@ -1,0 +1,124 @@
+@mixin link {
+  color: var(--link-text-color);
+  white-space: wrap;
+  word-break: break-all;
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--text-color);
+    text-decoration: underline;
+  }
+}
+
+// Shared styles for activity items (used by both Portfolio and Class Activity)
+// Styles apply to both .portfolio-items and .activity-items containers
+.portfolio-items,
+.activity-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  flex: 1;
+}
+
+// Shared styles for individual activity items
+// Note: Keeping class name "portfolio-item" for backward compatibility
+// Can be renamed to "activity-item" in the future if needed
+.portfolio-item {
+  position: relative;
+  padding: 0.75rem;
+  border: 1px solid var(--primary-background-color);
+  border-radius: 0.25rem;
+  background-color: color-mix(in srgb, var(--primary-background-color) 10%, transparent);
+
+  .item-actions {
+    position: absolute;
+    top: -0.75rem;
+    right: 0.75rem;
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+
+    .item-action-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.125rem 0.4rem;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--primary-background-color) 40%, transparent);
+      background-color: var(--background-color);
+      font-size: 0.7rem;
+      line-height: 1;
+      cursor: pointer;
+
+      svg {
+        width: 0.75em;
+        height: 0.75em;
+      }
+
+      &:hover {
+        background-color: color-mix(
+          in srgb,
+          var(--primary-background-color) 25%,
+          var(--background-color)
+        );
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+    }
+
+    .item-action-status {
+      padding: 0.1rem 0.35rem;
+      border-radius: 999px;
+      background-color: color-mix(in srgb, var(--primary-background-color) 70%, transparent);
+      color: var(--text-color-invert);
+      font-size: 0.7rem;
+      line-height: 1;
+    }
+  }
+
+  .item-section {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+    font-size: 0.875rem;
+    line-height: 1.5;
+
+    strong {
+      font-weight: 600;
+      margin-right: 0.25rem;
+    }
+  }
+
+  .item-content {
+    white-space: pre-wrap;
+  }
+
+  .item-list {
+    margin: 0.25rem 0 0 1.5rem;
+    padding: 0;
+    list-style-type: disc;
+
+    li {
+      margin-bottom: 0.25rem;
+
+      a {
+        @include link;
+      }
+    }
+  }
+
+  .item-link {
+    @include link;
+  }
+}
+
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: color-mix(in srgb, var(--text-color) 60%, transparent);
+}
+

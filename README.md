@@ -28,6 +28,10 @@ There is zero server communication for this plugin. It retrieves data based on w
 
 Extracts portfolio activities from the **Portfolios > Activity > Recent** page with date range filtering, real-time crawling, and comprehensive data extraction (images, content, metadata). Supports individual item copy/export and batch download as ZIP files. Includes session expiry detection, logo extraction, and dual popup/side panel view modes.
 
+### Class Activity Extraction (Implemented)
+
+Extracts class activity posts directly from the Class Activity page without requiring modal interactions. Features date range filtering, real-time crawling, and comprehensive data extraction (images, content, teacher, publish date). Supports individual item copy/export and batch download as ZIP files. All item information is available directly on the page, making crawling faster than Portfolio extraction.
+
 ### Screenshot
 
 <img src="./doc/dl-portfolio-interface.png" alt="Qoqolo Photo Downloader Portfolio Interface" width="360" />
@@ -36,7 +40,6 @@ The extension UI showing the Portfolio page interface with date range selectors,
 
 ### Planned Functionalities
 
-- Class activity extraction
 - Check-in / check-out photos extraction
 
 ## Tech Stack
@@ -121,9 +124,12 @@ Build output will be in: `dist/`.
 ├─ src/
 │  ├─ content/            # Content scripts
 │  │  ├─ index.ts         # Main content script entry
-│  │  └─ portfolio/       # Portfolio page crawling logic
-│  │     ├─ index.ts      # Portfolio message handler
-│  │     └─ helpers/      # Crawling helpers (collectItems, handleCrawlItem, etc.)
+│  │  ├─ portfolio/       # Portfolio page crawling logic
+│  │  │  ├─ index.ts      # Portfolio message handler
+│  │  │  └─ helpers/      # Crawling helpers (collectItems, handleCrawlItem, etc.)
+│  │  └─ classActivity/   # Class Activity page crawling logic
+│  │     ├─ index.ts      # Class Activity message handler
+│  │     └─ helpers/      # Crawling helpers (collectItems, extractItemDetails)
 │  ├─ background/         # Background service worker
 │  │  ├─ index.ts         # Main background entry
 │  │  ├─ constants.ts     # Background constants
@@ -136,6 +142,8 @@ Build output will be in: `dist/`.
 │  │  ├─ App.tsx          # Main app component
 │  │  ├─ PanelWrapper/    # Common UI wrapper with toggle button
 │  │  ├─ Portfolio/       # Portfolio page UI
+│  │  ├─ ClassActivity/   # Class Activity page UI
+│  │  ├─ activityShared/  # Shared components/hooks for Portfolio and Class Activity
 │  │  ├─ helpers/         # Popup helper functions
 │  │  └─ styles/          # Global styles
 │  └─ shared/             # Shared code
@@ -157,12 +165,12 @@ Popup <--> Background <--> Content Script <--> Page DOM
 
 This project follows the standard Chrome Extension (Manifest V3) structure. Here's a brief overview of the key folders in `src/`:
 
-| Folder        | Purpose                                                                                                                                                                                                                                                                                                                                  |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `content/`    | **Content scripts** run inside the web page context. They can read and manipulate the DOM, click links, and access page content. Contains portfolio-specific crawling logic in `portfolio/` subfolder with modular helpers for item collection, modal processing, data extraction, and logo extraction.                                  |
-| `background/` | **Background service worker** runs independently of any page. Handles tab state management, messaging coordination, view mode preferences, and logo URL storage. Organized into `helpers/` and `listeners/` subfolders for better code organization.                                                                                     |
-| `popup/`      | **React-based extension UI** (popup and side panel). Contains `App.tsx` as the main component, `PanelWrapper/` for common UI with toggle functionality and logo display, and `Portfolio/` for portfolio-specific UI with date filtering, crawl controls, and export functionality. Uses React hooks and components for state management. |
-| `shared/`     | **Shared code** including type definitions (`types/`), signal enums (`enums.ts`), helper functions (`helpers/`), utility functions (`utils/`), and reusable components (e.g., `CrawlActionsBar`). Ensures type safety and code reuse across content scripts, background, and popup.                                                      |
+| Folder        | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `content/`    | **Content scripts** run inside the web page context. They can read and manipulate the DOM, click links, and access page content. Contains page-specific crawling logic: `portfolio/` for Portfolio pages (with modal processing) and `classActivity/` for Class Activity pages (direct DOM extraction). Both include modular helpers for item collection and data extraction.                                                       |
+| `background/` | **Background service worker** runs independently of any page. Handles tab state management, messaging coordination, view mode preferences, and logo URL storage. Organized into `helpers/` and `listeners/` subfolders for better code organization.                                                                                                                                                                                |
+| `popup/`      | **React-based extension UI** (popup and side panel). Contains `App.tsx` as the main component, `PanelWrapper/` for common UI with toggle functionality and logo display, `Portfolio/` and `ClassActivity/` for page-specific UIs, and `activityShared/` for shared components/hooks used by both. All pages feature date filtering, crawl controls, and export functionality. Uses React hooks and components for state management. |
+| `shared/`     | **Shared code** including type definitions (`types/`), signal enums (`enums.ts`), helper functions (`helpers/`), utility functions (`utils/`), and reusable components (e.g., `CrawlActionsBar`). Ensures type safety and code reuse across content scripts, background, and popup.                                                                                                                                                 |
 
 In Chrome Extension MV3, the **content script** interacts with the page, the **background script** manages persistent logic and messaging, and the **popup** is the user-facing interface. The extension supports both popup and side panel views, with a toggle button to switch between them. Using `shared/` for types and common helpers ensures consistency across these parts.
 

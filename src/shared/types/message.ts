@@ -1,7 +1,11 @@
 import { SIGNALS } from '../enums';
 
 import type { PageType } from './page';
-import type { PortfolioItem } from './portfolio';
+import type { Item } from './item';
+
+// Legacy type aliases for backward compatibility
+type PortfolioItem = Item;
+type ClassActivityItem = Item;
 
 export type MonthDate = {
   year: number;
@@ -14,6 +18,11 @@ export type ContentMessage =
       dateRange?: { from: MonthDate | null; to: MonthDate | null };
     }
   | { type: SIGNALS.PORTFOLIO_STOP_CRAWL }
+  | {
+      type: SIGNALS.CLASS_ACTIVITY_START_CRAWL;
+      dateRange?: { from: MonthDate | null; to: MonthDate | null };
+    }
+  | { type: SIGNALS.CLASS_ACTIVITY_STOP_CRAWL }
   | { type: SIGNALS.PING }
   | { type: SIGNALS.GET_LOGO };
 
@@ -43,7 +52,11 @@ export type BackgroundMessage =
   | { type: SIGNALS.PORTFOLIO_ITEMS_UPDATED; items: PortfolioItem[] }
   | { type: SIGNALS.PORTFOLIO_ITEM_ADDED; item: PortfolioItem }
   | { type: SIGNALS.PORTFOLIO_CRAWL_COMPLETE }
-  | { type: SIGNALS.PORTFOLIO_ITEMS_GET };
+  | { type: SIGNALS.PORTFOLIO_ITEMS_GET }
+  | { type: SIGNALS.CLASS_ACTIVITY_ITEMS_UPDATED; items: ClassActivityItem[] }
+  | { type: SIGNALS.CLASS_ACTIVITY_ITEM_ADDED; item: ClassActivityItem }
+  | { type: SIGNALS.CLASS_ACTIVITY_CRAWL_COMPLETE }
+  | { type: SIGNALS.CLASS_ACTIVITY_ITEMS_GET };
 
 // Content script responses
 export type ContentResponse = { ok: boolean } | { logoUrl: string | null };
@@ -53,6 +66,7 @@ export type BackgroundResponse =
   | { useSidePanel: boolean } // For VIEW_GET_MODE and VIEW_TOGGLE_MODE
   | { tabInfo: TabInfo } // For TAB_GET_INFO
   | { items: PortfolioItem[] } // For PORTFOLIO_ITEMS_GET
+  | { items: ClassActivityItem[] } // For CLASS_ACTIVITY_ITEMS_GET
   | { ok: boolean }; // For other cases
 
 // Helper type to get response type from message type
@@ -66,6 +80,13 @@ export type ResponseForMessage<T extends BackgroundMessage | ContentMessage> = T
       ? { tabInfo: TabInfo }
       : T extends { type: SIGNALS.PORTFOLIO_ITEMS_GET }
         ? { items: PortfolioItem[] }
-        : T extends { type: SIGNALS.PORTFOLIO_START_CRAWL | SIGNALS.PING }
-          ? ContentResponse
-          : { ok: boolean };
+        : T extends { type: SIGNALS.CLASS_ACTIVITY_ITEMS_GET }
+          ? { items: ClassActivityItem[] }
+          : T extends {
+                type:
+                  | SIGNALS.PORTFOLIO_START_CRAWL
+                  | SIGNALS.CLASS_ACTIVITY_START_CRAWL
+                  | SIGNALS.PING;
+              }
+            ? ContentResponse
+            : { ok: boolean };

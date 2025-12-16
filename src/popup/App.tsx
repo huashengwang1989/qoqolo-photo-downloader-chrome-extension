@@ -7,7 +7,9 @@ import { requestTabInfo } from './helpers/requestTabInfo';
 import { setupTabInfoSync } from './helpers/setupTabUpdateListener';
 import PanelWrapper from './PanelWrapper';
 import Portfolio from './Portfolio';
+import ClassActivity from './ClassActivity';
 
+import { isClassActivityPageUrl } from '@/shared/helpers/page';
 import type { TabInfo } from '@/shared/types';
 
 const App: React.FC = () => {
@@ -15,6 +17,7 @@ const App: React.FC = () => {
   const [pageType, setPageType] = useState<TabInfo['pageType']>(null);
   const [isQoqoloSite, setIsQoqoloSite] = useState<boolean>(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [currentUrl, setCurrentUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const handleTabInfoUpdate = (tabInfo: TabInfo) => {
@@ -22,6 +25,7 @@ const App: React.FC = () => {
       setPageType(tabInfo.pageType);
       setIsQoqoloSite(tabInfo.isQoqoloSite);
       setLogoUrl(tabInfo.logoUrl);
+      setCurrentUrl(tabInfo.url?.fullUrl || null);
     };
 
     // Initial check
@@ -31,15 +35,23 @@ const App: React.FC = () => {
     return setupTabInfoSync(handleTabInfoUpdate);
   }, []);
 
+  // Check if Class Activity page has wrong tab
+  const isWrongClassActivityTab = useMemo(() => {
+    if (!currentUrl || pageType !== null) {
+      return false;
+    }
+    // If URL matches Class Activity pattern but pageType is null, it means wrong tab
+    return isClassActivityPageUrl(currentUrl);
+  }, [currentUrl, pageType]);
+
   // Render content based on page type
   const renderedContent = useMemo(() => {
     if (pageType === 'qoqoloPortfolioPage') {
       return <Portfolio />;
     }
-    // Future: add other page type components here
-    // if (pageType === 'otherPageType') {
-    //   return <OtherPageType />;
-    // }
+    if (pageType === 'qoqoloClassActivityPage') {
+      return <ClassActivity />;
+    }
     return null;
   }, [pageType]);
 
@@ -49,6 +61,7 @@ const App: React.FC = () => {
       isSupported={isSupported ?? false}
       isQoqoloSite={isQoqoloSite}
       logoUrl={logoUrl}
+      wrongClassActivityTab={isWrongClassActivityTab}
     >
       {renderedContent}
     </PanelWrapper>
