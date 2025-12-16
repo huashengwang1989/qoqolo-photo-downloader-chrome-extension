@@ -27,11 +27,10 @@ const ToggleViewButton: React.FC = () => {
     // Get current tab to open side panel with user gesture context
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    // Detect if we're in a popup (popups typically have specific window features)
-    // In Chrome extensions, popups are typically small windows
-    // Check window.opener or window dimensions as indicators
-    const isPopup =
-      window.innerWidth < 500 || window.location.href.includes('popup') || !window.opener; // Side panels typically have opener
+    // Detect if we're currently in a popup
+    // Use the current useSidePanel state: if false, we're in popup mode
+    // Note: Both popup and side panel use the same HTML file, so we can't distinguish by URL
+    const isCurrentlyPopup = !useSidePanel;
 
     // Toggle the preference first
     chrome.runtime.sendMessage(
@@ -46,7 +45,7 @@ const ToggleViewButton: React.FC = () => {
               try {
                 await chrome.sidePanel.open({ tabId: tab.id });
                 // Try to close popup (may not work due to Chrome restrictions)
-                if (isPopup) {
+                if (isCurrentlyPopup) {
                   // Attempt to close popup - this may not work due to Chrome restrictions
                   // Chrome typically prevents programmatic closing of popups
                   setTimeout(() => {
@@ -68,7 +67,7 @@ const ToggleViewButton: React.FC = () => {
         }
       },
     );
-  }, []);
+  }, [useSidePanel]);
 
   return (
     <>
