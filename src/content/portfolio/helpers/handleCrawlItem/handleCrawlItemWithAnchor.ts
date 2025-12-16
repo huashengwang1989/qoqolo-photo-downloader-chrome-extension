@@ -1,5 +1,6 @@
 import { processModalContent } from './processModalContent';
 import { handleLikelyLoginSessionExpired } from './helpers/handleLikelyLoginSessionExpired';
+import { getModalCloseButton } from './getModalCloseButton';
 
 import type { HandleCrawlItemResult } from './index';
 
@@ -16,6 +17,18 @@ export async function handleCrawlItemWithAnchor(
   item: PortfolioItem,
   anchor: HTMLAnchorElement,
 ): Promise<HandleCrawlItemResult> {
+  // Close any existing modals first to prevent multiple modals stacking
+  const existingModals = document.querySelectorAll<HTMLDivElement>('.view-foliette-modal');
+  for (const existingModal of Array.from(existingModals)) {
+    const existingCloseButton = getModalCloseButton(existingModal);
+    if (existingCloseButton) {
+      existingCloseButton.click();
+      await sleep(200); // Small delay between closing modals
+    }
+  }
+  // Wait a bit more to ensure modals are fully closed
+  await sleep(300);
+
   anchor.click();
 
   await sleep(1000);
@@ -38,9 +51,7 @@ export async function handleCrawlItemWithAnchor(
   await sleep(1000);
 
   // Look for close button
-  const closeButton =
-    modal.querySelector<HTMLButtonElement>('button.bootbox-close-button') ||
-    document.querySelector<HTMLButtonElement>('button[data-bb-handler="cancel"]');
+  const closeButton = getModalCloseButton(modal);
 
   // Detect likely login session expiry based on modal content
   const isLikelyLoginSessionExpired = handleLikelyLoginSessionExpired(modal, closeButton ?? null);
@@ -71,11 +82,24 @@ export async function handleCrawlItemWithAnchor(
     }
   }
 
-  if (closeButton) {
-    closeButton.click();
-    // Wait 500ms after clicking close button
-    await sleep(500);
+  // Close ALL modals, not just one (in case multiple modals exist)
+  const allModals = document.querySelectorAll<HTMLDivElement>('.view-foliette-modal');
+  let closedAny = false;
+  for (const modalToClose of Array.from(allModals)) {
+    const modalCloseButton = getModalCloseButton(modalToClose);
+    if (modalCloseButton) {
+      modalCloseButton.click();
+      closedAny = true;
+      await sleep(200); // Small delay between closing modals
+    }
   }
+
+  if (!closedAny) {
+    console.warn('[crawler] Close button not found for any modal', item.link);
+  }
+
+  // Wait 500ms after closing modals to ensure they're fully closed
+  await sleep(500);
 
   // Merge details: use modal's publishDate as priority, but keep itemCode from wrapper
   const finalDetails = {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { MAX_CRAWL_COUNT_PER_TIME } from '@/configs';
 import { SIGNALS } from '@/shared/enums';
@@ -7,6 +7,8 @@ import type { BackgroundMessage } from '@/shared/types';
 export interface UseCrawlControlOptions {
   /** Signal type for crawl completion */
   completionSignal: SIGNALS;
+  /** Storage key for storing crawl in-progress state */
+  crawlStateStorageKey: string;
   /** Maximum crawl count for timeout calculation */
   maxCrawlCount?: number;
   /** Current item count (for timeout detection) */
@@ -36,6 +38,7 @@ export interface UseCrawlControlReturn {
  */
 export function useCrawlControl({
   completionSignal,
+  crawlStateStorageKey,
   maxCrawlCount = MAX_CRAWL_COUNT_PER_TIME,
   itemCount,
   clearItems,
@@ -44,6 +47,41 @@ export function useCrawlControl({
 }: UseCrawlControlOptions): UseCrawlControlReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
+
+  // Restore loading state from storage on mount (handles tab switches)
+  useEffect(() => {
+    const checkCrawlState = () => {
+      chrome.storage.local.get([crawlStateStorageKey], (result) => {
+        const isCrawlingInStorage = result[crawlStateStorageKey] === true;
+        if (isCrawlingInStorage) {
+          // Restore loading state
+          setIsLoading(true);
+          // Initialize crawl start time to current time for timeout calculation
+          // This is an approximation since we don't know when crawl actually started
+          crawlStartTimeRef.current = Date.now();
+        }
+      });
+    };
+
+    checkCrawlState();
+
+    // Also listen for storage changes to update state if crawl state changes elsewhere
+    const handleStorageChange = (changes: Record<string, chrome.storage.StorageChange>) => {
+      if (changes[crawlStateStorageKey]) {
+        const isCrawling = changes[crawlStateStorageKey].newValue === true;
+        setIsLoading(isCrawling);
+        if (!isCrawling) {
+          setIsStopping(false);
+        }
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
+  }, [crawlStateStorageKey]);
 
   // Store timeout ID in a ref so we can clear it when crawl completes
   const timeoutRef = useRef<number | null>(null);
@@ -73,6 +111,8 @@ export function useCrawlControl({
         crawlStartTimeRef.current = null;
         currentItemCountRef.current = 0;
         lastItemCountRef.current = 0;
+        // Clear crawl state from storage
+        chrome.storage.local.remove([crawlStateStorageKey]);
         // Clear timeout if it exists
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
@@ -86,10 +126,12 @@ export function useCrawlControl({
     return () => {
       chrome.runtime.onMessage.removeListener(handleMessage);
     };
-  }, [completionSignal]);
+  }, [completionSignal, crawlStateStorageKey]);
 
   const onStartCrawl = useCallback(async () => {
     setIsLoading(true);
+    // Store crawl state in storage so it persists across tab switches
+    chrome.storage.local.set({ [crawlStateStorageKey]: true });
     clearItems();
     crawlStartTimeRef.current = Date.now();
     currentItemCountRef.current = 0;
@@ -123,6 +165,7 @@ export function useCrawlControl({
       if (currentItemCount === 0 || currentItemCount === lastItemCountRef.current) {
         console.warn('[popup] Crawl timeout - resetting loading state');
         setIsLoading(false);
+        chrome.storage.local.remove([crawlStateStorageKey]);
         crawlStartTimeRef.current = null;
         currentItemCountRef.current = 0;
         lastItemCountRef.current = 0;
@@ -139,8 +182,9 @@ export function useCrawlControl({
         timeoutRef.current = null;
       }
       setIsLoading(false);
+      chrome.storage.local.remove([crawlStateStorageKey]);
     }
-  }, [clearItems, maxCrawlCount, startCrawl]);
+  }, [clearItems, maxCrawlCount, startCrawl, crawlStateStorageKey]);
 
   const onStopCrawl = useCallback(async () => {
     setIsStopping(true);
@@ -154,11 +198,13 @@ export function useCrawlControl({
     // Loading state will be set to false when completion signal is received
   }, [stopCrawl]);
 
-  return {
-    isLoading,
-    isStopping,
-    onStartCrawl,
-    onStopCrawl,
-  };
+  return useMemo(
+    () => ({
+      isLoading,
+      isStopping,
+      onStartCrawl,
+      onStopCrawl,
+    }),
+    [isLoading, isStopping, onStartCrawl, onStopCrawl],
+  );
 }
-

@@ -27,9 +27,9 @@ export interface ActivityPageConfig {
   /** Signal for crawl completion */
   completionSignal: SIGNALS;
   /** Signal for start crawl */
-  startCrawlSignal: SIGNALS;
+  startCrawlSignal: SIGNALS.PORTFOLIO_START_CRAWL | SIGNALS.CLASS_ACTIVITY_START_CRAWL;
   /** Signal for stop crawl */
-  stopCrawlSignal: SIGNALS;
+  stopCrawlSignal: SIGNALS.PORTFOLIO_STOP_CRAWL | SIGNALS.CLASS_ACTIVITY_STOP_CRAWL;
   /** Batch filename prefix for exports */
   batchFilenamePrefix: string;
   /** Empty state message */
@@ -75,6 +75,43 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({ config }) => {
     storageKeyDateTo: dateToStorageKey,
   });
 
+  // Memoize startCrawl function to prevent recreation on every render
+  const startCrawl = useCallback(async () => {
+    console.info('[popup] activityShared - startCrawl', dateFrom, dateTo);
+
+    // Convert MonthDate to SharedMonthDate format
+    const dateRange: { from: MonthDate | null; to: MonthDate | null } = {
+      from: dateFrom ? { year: dateFrom.year, month: dateFrom.month } : null,
+      to: dateTo ? { year: dateTo.year, month: dateTo.month } : null,
+    };
+
+    await handleStartCrawl(
+      startCrawlSignal,
+      dateRange,
+      () => {
+        // onStart - crawl started successfully
+        // Loading state will be set to false when completion signal is received
+      },
+      (error) => {
+        // onError - error handling is done in useCrawlControl
+        throw new Error(error);
+      },
+    );
+  }, [dateFrom, dateTo, startCrawlSignal]);
+
+  // Memoize stopCrawl function to prevent recreation on every render
+  const stopCrawl = useCallback(async () => {
+    await handleStopCrawl(stopCrawlSignal, (error) => {
+      // onError - error handling is done in useCrawlControl
+      throw new Error(error);
+    });
+  }, [stopCrawlSignal]);
+
+  // Memoize clearItems function to prevent recreation on every render
+  const clearItems = useCallback(() => {
+    setItems([]);
+  }, [setItems]);
+
   // Crawl control hook
   const {
     isLoading,
@@ -83,35 +120,12 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({ config }) => {
     onStopCrawl: onStopCrawl,
   } = useCrawlControl({
     completionSignal,
+    crawlStateStorageKey: `${itemsStorageKey}_crawlInProgress`,
     maxCrawlCount: MAX_CRAWL_COUNT_PER_TIME,
     itemCount: items.length,
-    clearItems: () => setItems([]),
-    startCrawl: async () => {
-      // Convert MonthDate to SharedMonthDate format
-      const dateRange: { from: MonthDate | null; to: MonthDate | null } = {
-        from: dateFrom ? { year: dateFrom.year, month: dateFrom.month } : null,
-        to: dateTo ? { year: dateTo.year, month: dateTo.month } : null,
-      };
-
-      await handleStartCrawl(
-        startCrawlSignal,
-        dateRange,
-        () => {
-          // onStart - crawl started successfully
-          // Loading state will be set to false when completion signal is received
-        },
-        (error) => {
-          // onError - error handling is done in useCrawlControl
-          throw new Error(error);
-        },
-      );
-    },
-    stopCrawl: async () => {
-      await handleStopCrawl(stopCrawlSignal, (error) => {
-        // onError - error handling is done in useCrawlControl
-        throw new Error(error);
-      });
-    },
+    clearItems,
+    startCrawl,
+    stopCrawl,
   });
 
   const onStartCrawl = useCallback(async () => {

@@ -1,6 +1,6 @@
 import { handleCrawlItemWithAnchor } from './handleCrawlItemWithAnchor';
 
-import { formatDateToYYYYMMDD } from '@/shared/utils/date';
+import { formatDateToYYYYMMDD, checkIsDateInRange } from '@/shared/utils/date';
 import type { MonthDate } from '@/shared/types';
 import type { PortfolioItem } from '@/shared/types/portfolio';
 
@@ -57,53 +57,6 @@ function extractFromWrapper(anchor: HTMLAnchorElement): {
 }
 
 /**
- * Check if a date (YYYY-MM-DD) is within the date range (month-level accuracy)
- * @param date - Date string in YYYY-MM-DD format
- * @param dateRange - Date range with from/to months
- * @returns true if date is within range (or range is not specified)
- */
-function isDateInRange(
-  date: string,
-  dateRange?: { from: MonthDate | null; to: MonthDate | null },
-): boolean {
-  if (!dateRange || (!dateRange.from && !dateRange.to)) {
-    return true; // No filter if range is not specified
-  }
-
-  // Parse date string (YYYY-MM-DD) to year-month
-  const dateMatch = date.match(/^(\d{4})-(\d{2})-\d{2}$/);
-  if (!dateMatch) {
-    return true; // If date format is invalid, include it
-  }
-
-  const [, yearStr, monthStr] = dateMatch;
-  const itemYear = parseInt(yearStr, 10);
-  const itemMonth = parseInt(monthStr, 10);
-
-  // Check "from" constraint
-  if (dateRange.from) {
-    if (itemYear < dateRange.from.year) {
-      return false;
-    }
-    if (itemYear === dateRange.from.year && itemMonth < dateRange.from.month) {
-      return false;
-    }
-  }
-
-  // Check "to" constraint
-  if (dateRange.to) {
-    if (itemYear > dateRange.to.year) {
-      return false;
-    }
-    if (itemYear === dateRange.to.year && itemMonth > dateRange.to.month) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
  * Handle a single crawl item
  * @param item - The portfolio item to process (immutable)
  * @param dateRange - Optional date range filter
@@ -147,7 +100,7 @@ export async function handleCrawlItem(
     };
 
     // Check date range BEFORE clicking the link
-    if (wrapperData.publishDate && !isDateInRange(wrapperData.publishDate, dateRange)) {
+    if (wrapperData.publishDate && !checkIsDateInRange(wrapperData.publishDate, dateRange)) {
       console.info(
         '[crawler] Item out of date range, skipping',
         item.link,
