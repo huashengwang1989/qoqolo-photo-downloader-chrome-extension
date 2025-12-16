@@ -10,8 +10,8 @@ export function calculateDateRange(items: Item[]): string | null {
   const yearMonths: string[] = [];
 
   for (const item of items) {
-    if (item.details?.publishDate) {
-      const ym = extractYearMonth(item.details.publishDate);
+    if (item.publishDate) {
+      const ym = extractYearMonth(item.publishDate);
       if (ym) {
         yearMonths.push(ym);
       }
@@ -31,4 +31,3 @@ export function calculateDateRange(items: Item[]): string | null {
   // Always return "yyyy_mm-yyyy_mm" format (even if same date)
   return `${earliest}-${latest}`;
 }
-

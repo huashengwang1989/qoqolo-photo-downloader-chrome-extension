@@ -1,10 +1,30 @@
+import { parseDatetimeToDateAndDatetime } from '@/shared/utils/date';
 import type { Item } from '@/shared/types/item';
 
 export interface CollectItemsOptions {
   maxCount?: number;
 }
 
-export function collectItems(options?: CollectItemsOptions): Item[] {
+/**
+ * Extract publishDate from panel
+ * @param panel - The infinite-item panel HTMLDivElement
+ * @returns publishDate in YYYY-MM-DD format, or empty string if not found
+ */
+function extractPublishDateFromPanel(panel: HTMLDivElement): string {
+  // Extract publish datetime from media-right > p.text-muted
+  const publishDateParagraph = panel.querySelector<HTMLParagraphElement>(
+    'div.media-right p.text-muted',
+  );
+  if (!publishDateParagraph) {
+    return '';
+  }
+
+  const datetimeText = (publishDateParagraph.textContent || '').trim();
+  const parsed = parseDatetimeToDateAndDatetime(datetimeText);
+  return parsed.publishDate;
+}
+
+export function collectItemsForClassActivity(options?: CollectItemsOptions): Item[] {
   // Find all infinite-item panels
   const panels = document.querySelectorAll<HTMLDivElement>(
     'div.infinite-panel.posts-container div.infinite-item.post',
@@ -32,9 +52,12 @@ export function collectItems(options?: CollectItemsOptions): Item[] {
 
     // Only add if link doesn't exist yet (de-duplicate) and has required fields
     if (!linkMap.has(link) && rid && (type === 'album' || type === 'activity')) {
+      const publishDate = extractPublishDateFromPanel(panel);
+
       linkMap.set(link, {
         link,
         title,
+        publishDate,
         rid,
         type,
       });

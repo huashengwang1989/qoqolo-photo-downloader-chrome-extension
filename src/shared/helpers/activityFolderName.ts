@@ -8,7 +8,7 @@ import type { PortfolioItem } from '@/shared/types/portfolio';
  */
 export function generateActivityFolderName(item: PortfolioItem, maxLength = 200): string {
   // Format date: YYYY-MM-DD -> yyyy_mm_dd
-  const publishDate = item.details?.publishDate || new Date().toISOString().split('T')[0];
+  const publishDate = item.publishDate || new Date().toISOString().split('T')[0];
   const dateStr = publishDate.replace(/-/g, '_'); // 2025-08-25 -> 2025_08_25
 
   // Get title (default to "Untitled")

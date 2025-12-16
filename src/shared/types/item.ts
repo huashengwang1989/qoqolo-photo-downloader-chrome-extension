@@ -12,7 +12,6 @@ export type ItemDetails = {
   images: ItemImage[];
   content: string;
   teacher: string;
-  publishDate: string; // YYYY-MM-DD
   publishDatetime?: string; // YYYY-MM-DD HH:MM (Class Activity only)
   learningArea?: string[]; // Portfolio only
   stickers?: string[]; // Portfolio only
@@ -21,6 +20,7 @@ export type ItemDetails = {
 export type Item = {
   link: string;
   title: string;
+  publishDate: string; // YYYY-MM-DD - extracted at collection time
   itemCode?: string; // Portfolio: Extracted from foliette-item wrapper id
   rid?: string; // Class Activity: data-rid from infinite-item
   type?: 'album' | 'activity'; // Class Activity only

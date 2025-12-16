@@ -17,7 +17,7 @@ export function processModalContent(modal: HTMLDivElement): PortfolioItemDetails
 
   const images = extractImages(modal);
   const content = extractContent(modalBody);
-  const { teacher, publishDate } = extractTeacherAndDate(modalBody);
+  const { teacher } = extractTeacherAndDate(modalBody);
   const learningArea = extractLearningArea(modalBody);
   const stickers = extractStickers(modalBody);
 
@@ -25,7 +25,6 @@ export function processModalContent(modal: HTMLDivElement): PortfolioItemDetails
     images,
     content,
     teacher,
-    publishDate,
     learningArea,
     stickers,
   };

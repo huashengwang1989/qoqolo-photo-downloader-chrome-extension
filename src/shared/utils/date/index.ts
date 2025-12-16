@@ -29,7 +29,9 @@ export function parseDatetimeToDateAndDatetime(datetimeText: string): {
   publishDatetime: string;
 } {
   // Parse datetime from "dd mmm yyyy, HH:MMam/pm" format (e.g., "29 Nov 2025, 10:58pm")
-  const datetimeMatch = datetimeText.match(/(\d{1,2})\s+(\w{3})\s+(\d{4}),\s+(\d{1,2}):(\d{2})(am|pm)/i);
+  const datetimeMatch = datetimeText.match(
+    /(\d{1,2})\s+(\w{3})\s+(\d{4}),\s+(\d{1,2}):(\d{2})(am|pm)/i,
+  );
   if (!datetimeMatch) {
     return { publishDate: '', publishDatetime: '' };
   }
@@ -55,3 +57,4 @@ export function parseDatetimeToDateAndDatetime(datetimeText: string): {
 }
 
 export { checkIsDateInRange } from '../dateRange';
+export { hasItemsInRange, areAllItemsBeforeFrom, areAllItemsAfterTo } from '../dateRangeCheckers';

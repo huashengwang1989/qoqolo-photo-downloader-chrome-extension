@@ -63,9 +63,9 @@ export const ItemContent: React.FC<ItemContentProps> = ({ item }) => {
               <strong>Teacher:</strong> {details.teacher}
             </div>
           )}
-          {details.publishDate && (
+          {item.publishDate && (
             <div className="item-section">
-              <strong>Publish Date:</strong> {details.publishDate}
+              <strong>Publish Date:</strong> {item.publishDate}
             </div>
           )}
           {details.publishDatetime && (

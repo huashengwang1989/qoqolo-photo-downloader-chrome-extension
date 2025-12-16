@@ -53,7 +53,7 @@ export function buildMarkdownFromItem(item: Item): string {
     lines.push(''); // line break
   }
 
-  const publishDate = item.details?.publishDate || 'N.A.';
+  const publishDate = item.publishDate || 'N.A.';
   const publishDatetime = item.details?.publishDatetime || publishDate;
 
   // CommonTown App does not record activity date like LittleLives.
@@ -61,7 +61,7 @@ export function buildMarkdownFromItem(item: Item): string {
   // User may manually update it thereafter, for those that they know the activity date.
 
   lines.push(`Activity Timestamp: ${publishDatetime}`);
-  lines.push(`Publish Timestamp: ${publishDate}`);
+  lines.push(`Publish Timestamp: ${publishDatetime}`);
   lines.push(''); // line break
 
   // --- Stickers ---

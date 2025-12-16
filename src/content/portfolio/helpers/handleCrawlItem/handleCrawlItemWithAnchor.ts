@@ -8,12 +8,12 @@ import { sleep } from '@/shared/helpers/utils';
 import type { PortfolioItem } from '@/shared/types/portfolio';
 
 /**
- * Handle a crawl item when anchor is present
+ * Handle a crawl item for Portfolio when anchor is present
  * @param item - The portfolio item to process (immutable)
  * @param anchor - The HTML anchor element that was found
  * @returns Promise of crawl result with item details and issue status
  */
-export async function handleCrawlItemWithAnchor(
+export async function handleCrawlItemWithAnchorForPortfolio(
   item: PortfolioItem,
   anchor: HTMLAnchorElement,
 ): Promise<HandleCrawlItemResult> {
@@ -67,21 +67,6 @@ export async function handleCrawlItemWithAnchor(
   // Process modal content to extract details
   const details = processModalContent(modal);
 
-  // Compare publishDate from modal vs wrapper
-  if (item.details?.publishDate && details.publishDate) {
-    if (item.details.publishDate !== details.publishDate) {
-      console.warn(
-        '[crawler] Publish date mismatch between wrapper and modal',
-        item.link,
-        'Wrapper:',
-        item.details.publishDate,
-        'Modal:',
-        details.publishDate,
-      );
-      // Use modal's date as priority
-    }
-  }
-
   // Close ALL modals, not just one (in case multiple modals exist)
   const allModals = document.querySelectorAll<HTMLDivElement>('.view-foliette-modal');
   let closedAny = false;
@@ -101,17 +86,11 @@ export async function handleCrawlItemWithAnchor(
   // Wait 500ms after closing modals to ensure they're fully closed
   await sleep(500);
 
-  // Merge details: use modal's publishDate as priority, but keep itemCode from wrapper
-  const finalDetails = {
-    ...details,
-    publishDate: details.publishDate || item.details?.publishDate || '', // Modal date takes priority
-  };
-
-  // Stage 1: return item with details
+  // Stage 1: return item with details (publishDate is already at Item level)
   return {
     itemWithDetails: {
       ...item,
-      details: finalDetails,
+      details,
       itemCode: item.itemCode, // Preserve itemCode from wrapper
     },
     hasIssue: false,

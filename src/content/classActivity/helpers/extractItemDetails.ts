@@ -7,11 +7,10 @@ import type { ItemDetails, ItemImage } from '@/shared/types/item';
  * @param panel - The infinite-item panel HTMLDivElement
  * @returns Class Activity item details
  */
-export function extractItemDetails(panel: HTMLDivElement): ItemDetails {
+export function extractItemDetailsForClassActivity(panel: HTMLDivElement): ItemDetails {
   const images: ItemImage[] = [];
   let content = '';
   let teacher = '';
-  let publishDate = '';
   let publishDatetime = '';
 
   // Extract teacher name from media-right > a > strong
@@ -27,7 +26,6 @@ export function extractItemDetails(panel: HTMLDivElement): ItemDetails {
   if (publishDateParagraph) {
     const datetimeText = (publishDateParagraph.textContent || '').trim();
     const parsed = parseDatetimeToDateAndDatetime(datetimeText);
-    publishDate = parsed.publishDate;
     publishDatetime = parsed.publishDatetime;
   }
 
@@ -87,7 +85,6 @@ export function extractItemDetails(panel: HTMLDivElement): ItemDetails {
     images,
     content,
     teacher,
-    publishDate,
     publishDatetime,
   };
 }
