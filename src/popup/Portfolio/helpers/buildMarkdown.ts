@@ -7,56 +7,90 @@ import type { PortfolioItem } from '@/shared/types/portfolio';
 export function buildMarkdownFromItem(item: PortfolioItem): string {
   const lines: string[] = [];
 
-  lines.push(`# ${item.title || 'Untitled'}\n`);
+  lines.push(`## ${item.title || 'Untitled'}`);
 
-  if (item.details?.teacher || item.details?.publishDate) {
-    const metaParts: string[] = [];
-    if (item.details.teacher) {
-      metaParts.push(`**Teacher:** ${item.details.teacher}`);
-    }
-    if (item.details.publishDate) {
-      metaParts.push(`**Date:** ${item.details.publishDate}`);
-    }
-    lines.push(metaParts.join(' · '));
-  }
+  lines.push(''); // line break
 
-  lines.push('');
-  lines.push(`**Link:** ${item.link}`);
+  // --- Objectives ---
 
-  if (item.details?.content) {
-    lines.push('');
-    lines.push('---');
-    lines.push('');
-    lines.push(item.details.content);
-  }
+  // CommonTown App does not provide objectives.
+  // It is to match the README.md format that is used for the Photo Album (another repo)
+  lines.push('### Objectives');
+  lines.push(''); // line break
+
+  lines.push('N.A.');
+  lines.push(''); // line break
+
+  // --- Description ---
+
+  lines.push('### Description');
+  lines.push(''); // line break
+
+  lines.push(item.details?.content || 'N.A.');
+  lines.push(''); // line break
+
+  // --- Developments ---
+
+  lines.push('### Developments');
+  lines.push(''); // line break
 
   if (item.details?.learningArea?.length) {
-    lines.push('');
-    lines.push('---');
-    lines.push('');
-    lines.push('**Learning Area**');
     for (const area of item.details.learningArea) {
       lines.push(`- ${area}`);
     }
+  } else {
+    lines.push('N.A.');
   }
+  lines.push(''); // line break
+
+  // --- Meta ---
+
+  lines.push('### Meta');
+  lines.push(''); // line break
+
+  if (item.details?.teacher) {
+    lines.push(`Teacher: ${item.details.teacher}`);
+    lines.push(''); // line break
+  }
+
+  const publishDate = item.details?.publishDate || 'N.A.';
+
+  // CommonTown App does not record activity date like LittleLives.
+  // System may only use the publish date for both activity and publish dates.
+  // User may manually update it thereafter, for those that they know the activity date.
+
+  lines.push(`Activity Timestamp: ${publishDate}`);
+  lines.push(`Publish Timestamp: ${publishDate}`);
+  lines.push(''); // line break
+
+  // --- Stickers ---
+
+  lines.push('### Stickers');
+  lines.push(''); // line break
 
   if (item.details?.stickers?.length) {
-    lines.push('');
-    lines.push('---');
-    lines.push('');
-    lines.push('**Stickers**');
-    lines.push(item.details.stickers.join(', '));
+    for (const sticker of item.details.stickers) {
+      lines.push(`- ${sticker}`);
+    }
+  } else {
+    lines.push('N.A.');
   }
+  lines.push(''); // line break
+
+  // --- Captions ---
+
+  lines.push('### Captions');
+  lines.push(''); // line break
 
   if (item.details?.images?.length) {
-    lines.push('');
-    lines.push('---');
-    lines.push('');
-    lines.push('**Images**');
     for (const image of item.details.images) {
-      const alt = image.caption || 'Image';
-      lines.push(`- ![${alt}](${image.url})`);
+      const alt = image.caption || '';
+      lines.push(`![${alt}](${image.exportFilename})`);
+      lines.push(''); // line break
     }
+  } else {
+    lines.push('N.A.');
+    lines.push(''); // line break
   }
 
   return lines.join('\n');
