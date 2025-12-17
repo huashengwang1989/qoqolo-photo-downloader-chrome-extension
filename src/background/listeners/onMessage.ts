@@ -6,6 +6,7 @@ import { TAB_STATE } from '../state';
 import { SIGNALS } from '@/shared/enums';
 import type { BackgroundMessage } from '@/shared/types';
 import type { PortfolioItem } from '@/shared/types/portfolio';
+import type { CheckInOutMonthItem } from '@/shared/types/checkInOut';
 
 export function setupOnMessageListener() {
   chrome.runtime.onMessage.addListener((message: BackgroundMessage, sender, sendResponse) => {
@@ -91,6 +92,29 @@ export function setupOnMessageListener() {
         // No listeners, that's okay
       }
       return false; // Not a response message
+    }
+
+    if (
+      message.type === SIGNALS.CHECK_IN_OUT_ITEMS_UPDATED ||
+      message.type === SIGNALS.CHECK_IN_OUT_ITEM_ADDED
+    ) {
+      // Forward the message to popup/side panel if open
+      try {
+        chrome.runtime.sendMessage(message);
+      } catch (error) {
+        // No listeners, that's okay
+      }
+      return false; // Not a response message
+    }
+
+    if (message.type === SIGNALS.CHECK_IN_OUT_ITEMS_GET) {
+      const CHECK_IN_OUT_STORAGE_KEY = 'checkInOutCrawlItems';
+      chrome.storage.local.get([CHECK_IN_OUT_STORAGE_KEY], (result) => {
+        sendResponse({
+          items: (result[CHECK_IN_OUT_STORAGE_KEY] as CheckInOutMonthItem[]) || [],
+        });
+      });
+      return true;
     }
   });
 }

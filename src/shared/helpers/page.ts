@@ -1,10 +1,12 @@
 import type { PageType } from '../types/page';
 
+import { PAGE_URL_PATTERNS } from '@/configs';
+
 /**
  * Portfolios page: https://<customer_code>.qoqolo.com/cos/o.x?c=/<hash>/folio
  */
 const isPortfolioPage = (url: string): boolean => {
-  return /^https:\/\/.+\.qoqolo\.com\/cos\/o\.x\?c=\/.+\/folio/.test(url);
+  return PAGE_URL_PATTERNS.PORTFOLIO.test(url);
 };
 
 /**
@@ -12,7 +14,7 @@ const isPortfolioPage = (url: string): boolean => {
  * https://<customer_code>.qoqolo.com/cos/o.x?c=/<hash>/classspace&func=view&gid=<id>&post_type={...}
  */
 export const isClassActivityPageUrl = (url: string): boolean => {
-  return /^https:\/\/.+\.qoqolo\.com\/cos\/o\.x\?c=\/.+\/classspace&func=view&gid=\d+/.test(url);
+  return PAGE_URL_PATTERNS.CLASS_ACTIVITY.test(url);
 };
 
 /**
@@ -43,9 +45,18 @@ const isClassActivityPage = (url: string): boolean => {
   return isClassActivityPageUrl(url) && hasValidPostType(url);
 };
 
+/**
+ * Check-in/out page: https://<customer_code>.qoqolo.com/cos/o.x?c=/<hash>/check_in&func=recent
+ * May have selectDate parameter for filtering by month
+ */
+const isCheckInOutPage = (url: string): boolean => {
+  return PAGE_URL_PATTERNS.CHECK_IN_OUT.test(url);
+};
+
 export const PAGE_REGEX_CHECKS: Record<PageType, RegExp | ((url: string) => boolean)> = {
   qoqoloPortfolioPage: isPortfolioPage,
   qoqoloClassActivityPage: isClassActivityPage,
+  qoqoloCheckInOutPage: isCheckInOutPage,
 };
 
 export const getPageType = (fullUrl: string): PageType | null => {

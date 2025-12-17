@@ -1,4 +1,4 @@
-import { faCamera, faCheck, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faCamera, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 
@@ -32,16 +32,11 @@ export const UnsupportedQoqoloPageMessage: React.FC = () => {
               </span>
               <span>Class Activity</span>
             </li>
-          </ul>
-        </div>
-        <div className="not-supported-section">
-          <h4 className="not-supported-section-title">Upcoming:</h4>
-          <ul className="not-supported-list">
             <li>
               <span className="not-supported-list-icon">
-                <FontAwesomeIcon icon={faClock} />
+                <FontAwesomeIcon icon={faCheck} />
               </span>
-              <span>Check-in / Check-out</span>
+              <span>Recent Sign-in/out</span>
             </li>
           </ul>
         </div>

@@ -10,7 +10,10 @@ import type { ContentMessage, MonthDate } from '@/shared/types';
  * @param onError - Callback when error occurs
  */
 export async function handleStartCrawl(
-  startCrawlSignal: SIGNALS.PORTFOLIO_START_CRAWL | SIGNALS.CLASS_ACTIVITY_START_CRAWL,
+  startCrawlSignal:
+    | SIGNALS.PORTFOLIO_START_CRAWL
+    | SIGNALS.CLASS_ACTIVITY_START_CRAWL
+    | SIGNALS.CHECK_IN_OUT_START_CRAWL,
   dateRange?: { from: MonthDate | null; to: MonthDate | null },
   onStart?: () => void,
   onError?: (error: string) => void,

@@ -14,6 +14,9 @@ export type CrawlItem = {
 };
 // Unified item types
 export type { Item, ItemDetails, ItemImage } from './item';
+
+// Check-in/out types
+export type { CheckInOutMonthItem, DailyCheckInOut, CheckInOutImage } from './checkInOut';
 // Legacy type exports for backward compatibility
 export type { PortfolioItem, PortfolioItemDetails, PortfolioItemImage } from './portfolio';
 export type {

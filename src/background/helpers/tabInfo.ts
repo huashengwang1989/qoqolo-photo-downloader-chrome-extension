@@ -1,3 +1,4 @@
+import { PAGE_URL_PATTERNS } from '@/configs';
 import { getPageType } from '@/shared/helpers/page';
 import { SIGNALS } from '@/shared/enums';
 import type { TabInfo } from '@/shared/types/message';
@@ -56,7 +57,7 @@ export async function getTabInfo(tabId: number): Promise<TabInfo> {
     const pageType = getPageType(tab.url);
 
     // Check if it's a Qoqolo site
-    const isQoqoloSite = /^https:\/\/.+\.qoqolo\.com/.test(tab.url);
+    const isQoqoloSite = PAGE_URL_PATTERNS.QOQOLO_SITE.test(tab.url);
 
     // Load stored logo URL first (for immediate display)
     const stored = await chrome.storage.local.get([STORAGE_KEY_LOGO_URL]);

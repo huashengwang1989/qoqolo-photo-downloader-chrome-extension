@@ -15,4 +15,3 @@ export function triggerDownload(blob: Blob, filename: string): void {
     URL.revokeObjectURL(url);
   }, 100);
 }
-

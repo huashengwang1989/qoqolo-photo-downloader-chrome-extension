@@ -1,5 +1,6 @@
 import { handlePortfolioMessage } from './portfolio';
 import { handleClassActivityMessage } from './classActivity';
+import { handleCheckInOutMessage } from './checkInOut';
 import { extractLogo } from './helpers/extractLogo';
 
 import { SIGNALS } from '@/shared/enums';
@@ -45,6 +46,11 @@ if (typeof window !== 'undefined') {
 
         // Route class activity messages
         if (handleClassActivityMessage(message, sendResponse)) {
+          return true;
+        }
+
+        // Route check-in/out messages
+        if (handleCheckInOutMessage(message, sendResponse)) {
           return true;
         }
 

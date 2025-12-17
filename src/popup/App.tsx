@@ -8,6 +8,7 @@ import { setupTabInfoSync } from './helpers/setupTabUpdateListener';
 import PanelWrapper from './PanelWrapper';
 import Portfolio from './Portfolio';
 import ClassActivity from './ClassActivity';
+import CheckInOut from './CheckInOut';
 
 import { isClassActivityPageUrl } from '@/shared/helpers/page';
 import type { TabInfo } from '@/shared/types';
@@ -51,6 +52,9 @@ const App: React.FC = () => {
     }
     if (pageType === 'qoqoloClassActivityPage') {
       return <ClassActivity />;
+    }
+    if (pageType === 'qoqoloCheckInOutPage') {
+      return <CheckInOut />;
     }
     return null;
   }, [pageType]);

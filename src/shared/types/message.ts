@@ -2,6 +2,7 @@ import { SIGNALS } from '../enums';
 
 import type { PageType } from './page';
 import type { Item } from './item';
+import type { CheckInOutMonthItem } from './checkInOut';
 
 // Legacy type aliases for backward compatibility
 type PortfolioItem = Item;
@@ -23,6 +24,11 @@ export type ContentMessage =
       dateRange?: { from: MonthDate | null; to: MonthDate | null };
     }
   | { type: SIGNALS.CLASS_ACTIVITY_STOP_CRAWL }
+  | {
+      type: SIGNALS.CHECK_IN_OUT_START_CRAWL;
+      dateRange?: { from: MonthDate | null; to: MonthDate | null };
+    }
+  | { type: SIGNALS.CHECK_IN_OUT_STOP_CRAWL }
   | { type: SIGNALS.PING }
   | { type: SIGNALS.GET_LOGO };
 
@@ -56,7 +62,11 @@ export type BackgroundMessage =
   | { type: SIGNALS.CLASS_ACTIVITY_ITEMS_UPDATED; items: ClassActivityItem[] }
   | { type: SIGNALS.CLASS_ACTIVITY_ITEM_ADDED; item: ClassActivityItem }
   | { type: SIGNALS.CLASS_ACTIVITY_CRAWL_COMPLETE }
-  | { type: SIGNALS.CLASS_ACTIVITY_ITEMS_GET };
+  | { type: SIGNALS.CLASS_ACTIVITY_ITEMS_GET }
+  | { type: SIGNALS.CHECK_IN_OUT_ITEMS_UPDATED; items: CheckInOutMonthItem[] }
+  | { type: SIGNALS.CHECK_IN_OUT_ITEM_ADDED; item: CheckInOutMonthItem }
+  | { type: SIGNALS.CHECK_IN_OUT_CRAWL_COMPLETE }
+  | { type: SIGNALS.CHECK_IN_OUT_ITEMS_GET };
 
 // Content script responses
 export type ContentResponse = { ok: boolean } | { logoUrl: string | null };
@@ -67,6 +77,7 @@ export type BackgroundResponse =
   | { tabInfo: TabInfo } // For TAB_GET_INFO
   | { items: PortfolioItem[] } // For PORTFOLIO_ITEMS_GET
   | { items: ClassActivityItem[] } // For CLASS_ACTIVITY_ITEMS_GET
+  | { items: CheckInOutMonthItem[] } // For CHECK_IN_OUT_ITEMS_GET
   | { ok: boolean }; // For other cases
 
 // Helper type to get response type from message type
@@ -82,11 +93,14 @@ export type ResponseForMessage<T extends BackgroundMessage | ContentMessage> = T
         ? { items: PortfolioItem[] }
         : T extends { type: SIGNALS.CLASS_ACTIVITY_ITEMS_GET }
           ? { items: ClassActivityItem[] }
-          : T extends {
-                type:
-                  | SIGNALS.PORTFOLIO_START_CRAWL
-                  | SIGNALS.CLASS_ACTIVITY_START_CRAWL
-                  | SIGNALS.PING;
-              }
-            ? ContentResponse
-            : { ok: boolean };
+          : T extends { type: SIGNALS.CHECK_IN_OUT_ITEMS_GET }
+            ? { items: CheckInOutMonthItem[] }
+            : T extends {
+                  type:
+                    | SIGNALS.PORTFOLIO_START_CRAWL
+                    | SIGNALS.CLASS_ACTIVITY_START_CRAWL
+                    | SIGNALS.CHECK_IN_OUT_START_CRAWL
+                    | SIGNALS.PING;
+                }
+              ? ContentResponse
+              : { ok: boolean };

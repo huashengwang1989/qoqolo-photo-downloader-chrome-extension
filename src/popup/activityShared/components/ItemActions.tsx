@@ -1,6 +1,6 @@
-import { faCopy, faDownload } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
+
+import { ItemActions as SharedItemActions } from '@/shared/components/ItemActions';
 
 import { useItemActions } from '../helpers/useItemActions';
 
@@ -11,24 +11,14 @@ interface ItemActionsProps {
 }
 
 export const ItemActions: React.FC<ItemActionsProps> = ({ item }) => {
-  const { isCopied, isExporting, handleCopy, handleExport } = useItemActions(item);
+  const { handleCopy, handleExport } = useItemActions(item);
 
   return (
-    <div className="item-actions">
-      <button type="button" className="item-action-button" onClick={handleCopy}>
-        <FontAwesomeIcon icon={faCopy} />
-        <span>Copy</span>
-      </button>
-      <button
-        type="button"
-        className="item-action-button"
-        onClick={handleExport}
-        disabled={isExporting}
-      >
-        <FontAwesomeIcon icon={faDownload} />
-        <span>{isExporting ? 'Exporting...' : 'Export'}</span>
-      </button>
-      {isCopied && <span className="item-action-status">Copied</span>}
-    </div>
+    <SharedItemActions
+      onCopy={handleCopy}
+      onExport={handleExport}
+      containerClassName="item-actions"
+      buttonClassName="item-action-button"
+    />
   );
 };

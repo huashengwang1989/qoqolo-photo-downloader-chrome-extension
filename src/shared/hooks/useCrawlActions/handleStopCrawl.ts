@@ -8,7 +8,10 @@ import type { ContentMessage } from '@/shared/types';
  * @param onError - Callback when error occurs
  */
 export async function handleStopCrawl(
-  stopCrawlSignal: SIGNALS.PORTFOLIO_STOP_CRAWL | SIGNALS.CLASS_ACTIVITY_STOP_CRAWL,
+  stopCrawlSignal:
+    | SIGNALS.PORTFOLIO_STOP_CRAWL
+    | SIGNALS.CLASS_ACTIVITY_STOP_CRAWL
+    | SIGNALS.CHECK_IN_OUT_STOP_CRAWL,
   onError?: (error: string) => void,
 ): Promise<void> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

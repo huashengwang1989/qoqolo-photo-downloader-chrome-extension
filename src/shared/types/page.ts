@@ -1,1 +1,1 @@
-export type PageType = 'qoqoloPortfolioPage' | 'qoqoloClassActivityPage';
+export type PageType = 'qoqoloPortfolioPage' | 'qoqoloClassActivityPage' | 'qoqoloCheckInOutPage';

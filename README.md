@@ -32,15 +32,15 @@ Extracts portfolio activities from the **Portfolios > Activity > Recent** page w
 
 Extracts class activity posts directly from the Class Activity page without requiring modal interactions. Features date range filtering, real-time crawling, and comprehensive data extraction (images, content, teacher, publish date). Supports individual item copy/export and batch download as ZIP files. All item information is available directly on the page, making crawling faster than Portfolio extraction.
 
+### Recent Sign-in/out Extraction (Implemented)
+
+Extracts check-in and check-out photos and records from the **Recent Sign-in/out** page. Features flexible date range filtering (empty "from" crawls backward until 5 consecutive months with no data, empty "to" starts from current month), real-time crawling, and comprehensive data extraction (daily records with timestamps, persons, comments, and photos). Supports individual month copy/export and batch download as ZIP files. Each month export includes CSV (without photo URLs), JSON (with full data including photo links), and all images. Timestamps are formatted as YYYY-MM-DD HH:MM:SS (24-hour format).
+
 ### Screenshot
 
 <img src="./doc/dl-portfolio-interface.png" alt="Qoqolo Photo Downloader Portfolio Interface" width="360" />
 
 The extension UI showing the Portfolio page interface with date range selectors, crawl controls, and extracted portfolio item details.
-
-### Planned Functionalities
-
-- Check-in / check-out photos extraction
 
 ## Tech Stack
 
