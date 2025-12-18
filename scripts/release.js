@@ -357,24 +357,24 @@ async function main() {
 
   try {
     // Step 7: Push main/master to origin if ahead
-    if (isAheadOfOrigin(currentBranch)) {
+    if (isAheadOfOrigin(originalBranch)) {
       if (isDryRun) {
-        console.log(`\n[DRY RUN] Would push ${currentBranch} to origin`);
+        console.log(`\n[DRY RUN] Would push ${originalBranch} to origin`);
       } else {
-        console.log(`\n✓ ${currentBranch} is ahead of origin. Pushing...`);
-        git(`push origin ${currentBranch}`);
+        console.log(`\n✓ ${originalBranch} is ahead of origin. Pushing...`);
+        git(`push origin ${originalBranch}`);
       }
     } else {
-      console.log(`\n✓ ${currentBranch} is up to date with origin`);
+      console.log(`\n✓ ${originalBranch} is up to date with origin`);
     }
 
     // Step 8: Ensure release branch exists and switch to it
-    // Note: If release branch doesn't exist, it will be created from currentBranch (main/master)
+    // Note: If release branch doesn't exist, it will be created from originalBranch (main/master)
     // This ensures it has all the latest files including the release script itself
     if (isDryRun) {
       console.log(`\n[DRY RUN] Would ensure release branch exists and switch to it`);
     } else {
-      ensureReleaseBranch(currentBranch);
+      ensureReleaseBranch(originalBranch);
       // After switching branches, verify critical files still exist
       // This handles the case where release branch might be outdated
       const packagePathAfterSwitch = resolve(rootDir, 'package.json');
@@ -390,9 +390,9 @@ async function main() {
     // Step 9: Merge main/master into release to ensure it's up to date
     // This is important for future releases when release branch might have diverged
     if (isDryRun) {
-      console.log(`\n[DRY RUN] Would merge ${currentBranch} into ${RELEASE_BRANCH}`);
+      console.log(`\n[DRY RUN] Would merge ${originalBranch} into ${RELEASE_BRANCH}`);
     } else {
-      mergeMainIntoRelease(currentBranch);
+      mergeMainIntoRelease(originalBranch);
     }
 
     // Step 10: Update package.json version
@@ -463,12 +463,12 @@ async function main() {
 
     // Step 16: Merge release back to main/master and push
     if (isDryRun) {
-      console.log(`\n[DRY RUN] Would merge ${RELEASE_BRANCH} back to ${currentBranch} and push`);
+      console.log(`\n[DRY RUN] Would merge ${RELEASE_BRANCH} back to ${originalBranch} and push`);
     } else {
-      console.log(`\n✓ Merging ${RELEASE_BRANCH} back to ${currentBranch}...`);
-      git(`checkout ${currentBranch}`);
+      console.log(`\n✓ Merging ${RELEASE_BRANCH} back to ${originalBranch}...`);
+      git(`checkout ${originalBranch}`);
       git(`merge ${RELEASE_BRANCH} --no-edit`);
-      git(`push origin ${currentBranch}`);
+      git(`push origin ${originalBranch}`);
     }
 
     if (isDryRun) {
