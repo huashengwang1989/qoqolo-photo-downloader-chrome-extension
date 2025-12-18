@@ -51,8 +51,10 @@ if (!isRunningFromTemp) {
       },
     });
 
-    // Pipe stdin from parent to child process
+    // Pipe stdin from parent to child process and pause parent stdin
+    // This prevents duplicate input - only the child process will read from stdin
     process.stdin.pipe(nodeProcess.stdin);
+    process.stdin.pause(); // Pause parent stdin to prevent it from reading
 
     nodeProcess.on('exit', (code) => {
       // Clean up stdin pipe
@@ -653,6 +655,9 @@ async function main() {
     console.log(
       `📁 Release zip: releases/qoqolo-photo-downloader-chrome-extension-v${newVersion.replace(/\./g, '_')}.zip`,
     );
+
+    // Exit successfully after completing the release
+    process.exit(0);
   } catch (error) {
     console.error('\n✗ Release failed:', error.message);
     process.exit(1);
