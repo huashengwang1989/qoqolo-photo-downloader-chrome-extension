@@ -41,8 +41,9 @@ if (!isRunningFromTemp) {
     console.log('📋 Copied release script to temp file for stability during branch switching...\n');
 
     // Re-execute from temp file, passing project root as env var so temp script knows where it is
+    // Use 'pipe' for stdin to avoid duplicate input, but 'inherit' for stdout/stderr
     const nodeProcess = spawn('node', [tempPath, ...process.argv.slice(2)], {
-      stdio: 'inherit',
+      stdio: ['pipe', 'inherit', 'inherit'], // Pipe stdin, inherit stdout/stderr
       cwd: rootDir, // Critical: run from project root so node_modules can be found
       env: {
         ...process.env,
@@ -50,7 +51,17 @@ if (!isRunningFromTemp) {
       },
     });
 
+    // Pipe stdin from parent to child process
+    process.stdin.pipe(nodeProcess.stdin);
+
     nodeProcess.on('exit', (code) => {
+      // Clean up stdin pipe
+      try {
+        process.stdin.unpipe(nodeProcess.stdin);
+        nodeProcess.stdin.end();
+      } catch {
+        // Ignore cleanup errors
+      }
       // Clean up temp file
       try {
         const tempPath = resolve(rootDir, '.release-script-temp.js');
@@ -66,6 +77,13 @@ if (!isRunningFromTemp) {
     // Handle errors
     nodeProcess.on('error', (error) => {
       console.error('\n✗ Failed to execute temp script:', error.message);
+      // Clean up stdin pipe
+      try {
+        process.stdin.unpipe(nodeProcess.stdin);
+        nodeProcess.stdin.end();
+      } catch {
+        // Ignore cleanup errors
+      }
       // Clean up temp file
       try {
         const tempPath = resolve(rootDir, '.release-script-temp.js');
@@ -229,8 +247,17 @@ function updateChangelog(newVersion) {
     // Safely split and filter to ensure we only have valid strings
     const rawLines = changelogContent.split('\n') || [];
     const lines = rawLines
-      .map((line) => (line != null ? String(line) : ''))
-      .filter((line) => line !== null && line !== undefined);
+      .map((line) => {
+        if (line == null || line === undefined) {
+          return '';
+        }
+        try {
+          return String(line);
+        } catch {
+          return '';
+        }
+      })
+      .filter((line) => line !== null && line !== undefined && typeof line === 'string');
     let insertIndex = -1;
 
     // Find where to insert (after header, before first version)
@@ -250,11 +277,22 @@ function updateChangelog(newVersion) {
     if (insertIndex === -1) {
       // No version section found, append after header
       const emptyLineIndex = lines.findIndex((line) => {
-        if (line == null || typeof line !== 'string' || typeof line.trim !== 'function') {
+        // Defensive checks for null/undefined/invalid values
+        if (line == null || line === undefined) {
+          return false;
+        }
+        if (typeof line !== 'string') {
+          try {
+            line = String(line);
+          } catch {
+            return false;
+          }
+        }
+        if (typeof line.trim !== 'function') {
           return false;
         }
         try {
-          const trimmed = String(line).trim();
+          const trimmed = line.trim();
           return trimmed === '';
         } catch {
           return false;
