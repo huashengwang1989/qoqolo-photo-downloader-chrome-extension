@@ -118,7 +118,18 @@ function updateChangelog(newVersion) {
     return;
   }
 
-  const changelogContent = readFileSync(changelogPath, 'utf8');
+  let changelogContent;
+  try {
+    changelogContent = readFileSync(changelogPath, 'utf8');
+  } catch (error) {
+    console.warn('\n⚠️  Failed to read CHANGELOG.md:', error.message);
+    return;
+  }
+
+  if (!changelogContent || typeof changelogContent !== 'string') {
+    console.warn('\n⚠️  CHANGELOG.md is empty or invalid. Skipping changelog update.');
+    return;
+  }
 
   // Get current date in YYYY-MM-DD format
   const today = new Date();
@@ -143,7 +154,8 @@ function updateChangelog(newVersion) {
 
     // Find where to insert (after header, before first version)
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i].match(/^## \[/)) {
+      const line = lines[i];
+      if (line && typeof line === 'string' && line.match(/^## \[/)) {
         insertIndex = i;
         break;
       }
@@ -151,10 +163,8 @@ function updateChangelog(newVersion) {
 
     if (insertIndex === -1) {
       // No version section found, append after header
-      insertIndex = lines.findIndex((line) => line.trim() === '') + 1;
-      if (insertIndex === 0) {
-        insertIndex = lines.length;
-      }
+      const emptyLineIndex = lines.findIndex((line) => line && line.trim() === '');
+      insertIndex = emptyLineIndex >= 0 ? emptyLineIndex + 1 : lines.length;
     }
 
     // Insert new version section
@@ -272,16 +282,19 @@ async function main() {
   }
   console.log('🚀 Starting release process...\n');
 
-  // Step 1: Check current branch
-  const currentBranch = getCurrentBranch();
-  const isMainBranch = MAIN_BRANCHES.includes(currentBranch);
+  // Step 0: Store the original branch and ensure we start from main/master
+  const originalBranch = getCurrentBranch();
+  const isMainBranch = MAIN_BRANCHES.includes(originalBranch);
 
   if (!isMainBranch) {
-    console.error(`✗ Error: Must be on main or master branch. Current branch: ${currentBranch}`);
+    console.error(`✗ Error: Must be on main or master branch. Current branch: ${originalBranch}`);
     process.exit(1);
   }
 
-  console.log(`✓ Current branch: ${currentBranch}`);
+  console.log(`✓ Current branch: ${originalBranch}`);
+
+  // Important: All file paths are resolved relative to rootDir which is set before branch switching
+  // This ensures we always reference files from the correct location regardless of branch
 
   // Step 2: Check for uncommitted changes
   if (hasUncommittedChanges()) {
@@ -356,13 +369,26 @@ async function main() {
     }
 
     // Step 8: Ensure release branch exists and switch to it
+    // Note: If release branch doesn't exist, it will be created from currentBranch (main/master)
+    // This ensures it has all the latest files including the release script itself
     if (isDryRun) {
       console.log(`\n[DRY RUN] Would ensure release branch exists and switch to it`);
     } else {
       ensureReleaseBranch(currentBranch);
+      // After switching branches, verify critical files still exist
+      // This handles the case where release branch might be outdated
+      const packagePathAfterSwitch = resolve(rootDir, 'package.json');
+      if (!existsSync(packagePathAfterSwitch)) {
+        console.error('\n✗ Error: package.json not found after switching to release branch.');
+        console.error('  The release branch may be missing critical files.');
+        console.error('  This should not happen if release branch was created from main/master.');
+        console.error('  Please check your git repository state.');
+        process.exit(1);
+      }
     }
 
-    // Step 9: Merge main/master into release
+    // Step 9: Merge main/master into release to ensure it's up to date
+    // This is important for future releases when release branch might have diverged
     if (isDryRun) {
       console.log(`\n[DRY RUN] Would merge ${currentBranch} into ${RELEASE_BRANCH}`);
     } else {
