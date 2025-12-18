@@ -374,10 +374,46 @@ function prompt(question) {
     output: process.stdout,
   });
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    let resolved = false;
+
+    const cleanup = () => {
+      if (!resolved) {
+        resolved = true;
+        try {
+          rl.close();
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
+    };
+
     rl.question(question, (answer) => {
-      rl.close();
-      resolve((answer || '').trim());
+      if (!resolved) {
+        resolved = true;
+        cleanup();
+        // Normalize the answer: trim whitespace and handle null/undefined
+        const normalized = (answer || '').toString().trim();
+        resolve(normalized);
+      }
+    });
+
+    // Handle errors (e.g., stdin closed, EIO)
+    rl.on('error', (error) => {
+      if (!resolved) {
+        resolved = true;
+        cleanup();
+        reject(error);
+      }
+    });
+
+    // Handle SIGINT (Ctrl+C)
+    process.once('SIGINT', () => {
+      if (!resolved) {
+        resolved = true;
+        cleanup();
+        reject(new Error('Interrupted by user'));
+      }
     });
   });
 }
@@ -453,18 +489,36 @@ async function main() {
   console.log(`\n📦 Version bump: ${currentVersion} → ${newVersion}`);
 
   // Step 5.5: Remind user to update changelog
-  const changelogUpdated = await prompt(
-    '\nHave you updated Changelog? If not, please update at "[Unreleased]" section (yes/no): ',
-  );
-  if (changelogUpdated.toLowerCase() !== 'yes' && changelogUpdated.toLowerCase() !== 'y') {
+  let changelogUpdated;
+  try {
+    changelogUpdated = await prompt(
+      '\nHave you updated Changelog? If not, please update at "[Unreleased]" section (yes/no): ',
+    );
+  } catch (error) {
+    console.error('\n✗ Failed to read input:', error.message);
+    console.log('  Release cancelled.');
+    process.exit(1);
+  }
+
+  const answer = (changelogUpdated || '').toLowerCase().trim();
+  if (answer !== 'yes' && answer !== 'y') {
     console.log('\n✗ Please update the changelog at "[Unreleased]" section before releasing.');
     console.log('  Release cancelled.');
     process.exit(0);
   }
 
   // Step 6: Confirm version
-  const confirm = await prompt('\nProceed with this version? (yes/no): ');
-  if (confirm.toLowerCase() !== 'yes' && confirm.toLowerCase() !== 'y') {
+  let confirm;
+  try {
+    confirm = await prompt('\nProceed with this version? (yes/no): ');
+  } catch (error) {
+    console.error('\n✗ Failed to read input:', error.message);
+    console.log('  Release cancelled.');
+    process.exit(1);
+  }
+
+  const confirmAnswer = (confirm || '').toLowerCase().trim();
+  if (confirmAnswer !== 'yes' && confirmAnswer !== 'y') {
     console.log('\n✗ Release cancelled.');
     process.exit(0);
   }
