@@ -1,3 +1,4 @@
+import { copyFileSync } from 'fs';
 import { resolve } from 'path';
 
 import type { Plugin } from 'vite';
@@ -6,6 +7,24 @@ import react from '@vitejs/plugin-react';
 
 // eslint-disable-next-line no-console
 console.log('Vite publicDir:', process.cwd() + '/public');
+
+// Plugin to copy LICENSE file to dist
+function copyLicense(): Plugin {
+  return {
+    name: 'copy-license',
+    async closeBundle() {
+      const licensePath = resolve(__dirname, 'LICENSE');
+      const distLicensePath = resolve(__dirname, 'dist/LICENSE');
+      try {
+        copyFileSync(licensePath, distLicensePath);
+        // eslint-disable-next-line no-console
+        console.log('[vite] Copied LICENSE to dist');
+      } catch (error) {
+        console.warn('[vite] Failed to copy LICENSE:', error);
+      }
+    },
+  };
+}
 
 // Plugin to rebuild content script as IIFE after main build
 function contentScriptIIFE(): Plugin {
@@ -42,7 +61,7 @@ function contentScriptIIFE(): Plugin {
 
 export default defineConfig({
   root: 'src',
-  plugins: [react(), contentScriptIIFE()],
+  plugins: [react(), copyLicense(), contentScriptIIFE()],
   publicDir: resolve(__dirname, 'public'),
   resolve: {
     alias: {
