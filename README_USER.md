@@ -8,20 +8,11 @@ A simple guide to help you install and use the Qoqolo Photo Downloader Chrome ex
 
 ## Installation
 
-### Step 1: Build the Extension
+### Step 1: Download the Extension
 
-> A directly downloadable release build shall be supplied in the future, once the extension is fully done.
-
-Before installing, you need to build the extension first. If you haven't done this yet:
-
-1. Open a terminal/command prompt
-2. Navigate to the extension folder
-3. Run: `pnpm install` (to install dependencies)
-4. Run: `pnpm build` (to build the extension)
-
-Refer to the [main README](./README.md) if you need more details on `pnpm`.
-
-After building, you'll find the ready-to-install extension files in the `/dist` folder.
+1. Go to the **Releases** section of this repository (on GitHub, click on "Releases" in the right sidebar, or visit the repository's Releases page)
+2. Download the latest release ZIP file (e.g., `qoqolo-photo-downloader-chrome-extension-v1_0_1.zip`)
+3. Extract the ZIP file to a folder on your computer (remember where you saved it!)
 
 ### Step 2: Load the Extension in Chrome
 
@@ -31,7 +22,7 @@ After building, you'll find the ready-to-install extension files in the `/dist` 
    - Or type `chrome://extensions/` in the address bar and press Enter
 4. In the top-right corner, toggle **Developer mode** ON
 5. Click the **Load unpacked** button
-6. Navigate to and select the `/dist` folder from this project
+6. Navigate to and select the **extracted folder** (the one you extracted from the ZIP file)
 7. The extension should now appear in your extensions list
 
 ### Step 3: Pin the Extension (Optional but Recommended)
@@ -42,17 +33,21 @@ After building, you'll find the ready-to-install extension files in the `/dist` 
 
 ## Updating the Extension
 
-When you receive an updated version:
+When a new version is available:
 
-1. **Build the new version** (if you have the source code):
-   - Run `pnpm build` in the project folder
+1. **Download the new release**:
+   - Go to the **Releases** section of this repository
+   - Download the latest release ZIP file
+   - Extract it to a folder (you can replace the old folder or use a new one)
 2. **Reload the extension in Chrome**:
    - Go to `chrome://extensions/`
    - Find "Qoqolo Photo Downloader" in your extensions list
    - Click the **reload icon** (🔄) on the extension card
 3. That's it! The extension is now updated.
 
-**Note:** If you're updating from a significantly older version, you may need to remove the old extension and load the new `/dist` folder again using "Load unpacked".
+**Note:** If you're updating from a significantly older version, you may need to:
+   - Remove the old extension from Chrome
+   - Load the new extracted folder again using "Load unpacked"
 
 ## Switching Between Popup and Side Panel
 
