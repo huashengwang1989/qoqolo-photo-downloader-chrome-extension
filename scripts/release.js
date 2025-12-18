@@ -260,7 +260,7 @@ function prompt(question) {
   return new Promise((resolve) => {
     rl.question(question, (answer) => {
       rl.close();
-      resolve(answer.trim());
+      resolve((answer || '').trim());
     });
   });
 }
