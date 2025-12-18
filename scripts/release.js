@@ -1,8 +1,16 @@
 #!/usr/bin/env node
 /* eslint-disable no-undef */
 
-import { execSync } from 'child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'fs';
+import { execSync, spawn } from 'child_process';
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  unlinkSync,
+  writeFileSync,
+} from 'fs';
 import { createInterface } from 'readline';
 import { resolve, dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -11,6 +19,65 @@ import JSZip from 'jszip';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = resolve(__dirname, '..');
+const TEMP_SCRIPT_PATH = resolve(rootDir, '.release-script-temp.js');
+
+// Check if we're running from temp file
+const isRunningFromTemp = __filename === TEMP_SCRIPT_PATH;
+
+// If not running from temp, copy script to temp and re-execute
+(async function bootstrap() {
+  if (isRunningFromTemp) {
+    return; // Already running from temp, continue with main script
+  }
+
+  try {
+    // Copy current script to temp file
+    const currentScriptContent = readFileSync(__filename, 'utf8');
+    writeFileSync(TEMP_SCRIPT_PATH, currentScriptContent);
+    console.log('📋 Copied release script to temp file for stability during branch switching...\n');
+
+    // Re-execute from temp file
+    const nodeProcess = spawn('node', [TEMP_SCRIPT_PATH, ...process.argv.slice(2)], {
+      stdio: 'inherit',
+      cwd: rootDir,
+    });
+
+    nodeProcess.on('exit', (code) => {
+      // Clean up temp file
+      try {
+        if (existsSync(TEMP_SCRIPT_PATH)) {
+          unlinkSync(TEMP_SCRIPT_PATH);
+        }
+      } catch {
+        // Ignore cleanup errors
+      }
+      process.exit(code || 0);
+    });
+
+    // Handle errors
+    nodeProcess.on('error', (error) => {
+      console.error('\n✗ Failed to execute temp script:', error.message);
+      // Clean up temp file
+      try {
+        if (existsSync(TEMP_SCRIPT_PATH)) {
+          unlinkSync(TEMP_SCRIPT_PATH);
+        }
+      } catch {
+        // Ignore cleanup errors
+      }
+      process.exit(1);
+    });
+
+    // Wait indefinitely - the spawned process will handle everything
+    await new Promise(() => {
+      // Never resolves - the spawned process handles everything
+    });
+  } catch (error) {
+    console.error('\n✗ Failed to create temp script:', error.message);
+    console.error('  Continuing with current script (may fail if branch switching occurs)...');
+    // Continue with current script as fallback - main() will run below
+  }
+})();
 
 const RELEASE_BRANCH = 'release';
 const MAIN_BRANCHES = ['main', 'master'];
@@ -306,6 +373,13 @@ function prompt(question) {
 
 // Main release process
 async function main() {
+  // Only run if we're executing from temp file (or bootstrap failed)
+  if (!isRunningFromTemp) {
+    // If we reach here, bootstrap failed, so we'll continue with current script
+    console.warn('\n⚠️  Running from original script (temp file creation may have failed)');
+    console.warn('  If branch switching occurs, the script may fail.\n');
+  }
+
   if (isDryRun) {
     console.log('🧪 DRY RUN MODE - No changes will be committed or pushed\n');
   }
@@ -524,8 +598,39 @@ async function main() {
   }
 }
 
-// Run main function
-main().catch((error) => {
-  console.error('\n✗ Unexpected error:', error);
-  process.exit(1);
-});
+// Run main function (only if we're running from temp file, or bootstrap failed)
+if (isRunningFromTemp) {
+  main()
+    .then(() => {
+      // Clean up temp file
+      try {
+        if (existsSync(TEMP_SCRIPT_PATH)) {
+          unlinkSync(TEMP_SCRIPT_PATH);
+        }
+      } catch {
+        // Ignore cleanup errors
+      }
+    })
+    .catch((error) => {
+      console.error('\n✗ Unexpected error:', error);
+      // Clean up temp file
+      try {
+        if (existsSync(TEMP_SCRIPT_PATH)) {
+          unlinkSync(TEMP_SCRIPT_PATH);
+        }
+      } catch {
+        // Ignore cleanup errors
+      }
+      process.exit(1);
+    });
+} else {
+  // Bootstrap will spawn a new process from temp file
+  // If bootstrap fails, wait a bit then run main as fallback
+  setTimeout(() => {
+    console.warn('\n⚠️  Bootstrap did not spawn new process, running main as fallback...');
+    main().catch((error) => {
+      console.error('\n✗ Unexpected error:', error);
+      process.exit(1);
+    });
+  }, 2000);
+}
