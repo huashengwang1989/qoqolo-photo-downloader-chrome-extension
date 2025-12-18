@@ -42,15 +42,21 @@ function extractItemCodeFromWrapper(wrapper: HTMLDivElement): string {
 }
 
 export function collectItemsForPortfolio(options?: CollectItemsOptions): PortfolioItem[] {
-  // Get all foliette-item wrappers first
-  const wrappers = document.querySelectorAll<HTMLDivElement>('div.foliette-item');
+  // Find the infinite-panel container first
+  const wrapper = document.querySelector<HTMLDivElement>('div.infinite-panel.foliettes-container');
+  if (!wrapper) {
+    return [];
+  }
+
+  // Get all foliette-item panels then
+  const panels = wrapper.querySelectorAll<HTMLDivElement>('div.foliette-item');
 
   // Map wrappers to items and de-duplicate by link
   const linkMap = new Map<string, PortfolioItem>();
 
-  Array.from(wrappers).forEach((wrapper) => {
-    // Find the anchor within this wrapper
-    const anchor = wrapper.querySelector<HTMLAnchorElement>('div.media-body a.foliette-view');
+  Array.from(panels).forEach((panel) => {
+    // Find the anchor within this panel
+    const anchor = panel.querySelector<HTMLAnchorElement>('div.media-body a.foliette-view');
     if (!anchor) {
       return; // Skip if no anchor found
     }
@@ -60,8 +66,8 @@ export function collectItemsForPortfolio(options?: CollectItemsOptions): Portfol
 
     // Only add if link doesn't exist yet (de-duplicate)
     if (!linkMap.has(link)) {
-      const publishDate = extractPublishDateFromWrapper(wrapper);
-      const itemCode = extractItemCodeFromWrapper(wrapper);
+      const publishDate = extractPublishDateFromWrapper(panel);
+      const itemCode = extractItemCodeFromWrapper(panel);
 
       linkMap.set(link, {
         link,

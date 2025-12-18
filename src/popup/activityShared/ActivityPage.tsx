@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { ActivityItem, exportBatch, useItems } from './index';
 
-import { MAX_CRAWL_COUNT_PER_TIME } from '@/configs';
 import { CrawlActionsBar } from '@/shared/components/CrawlActionsBar';
 import { MonthDatePicker } from '@/shared/components/MonthDatePicker';
 import { SIGNALS } from '@/shared/enums';
@@ -32,6 +31,8 @@ export interface ActivityPageConfig {
   stopCrawlSignal: SIGNALS.PORTFOLIO_STOP_CRAWL | SIGNALS.CLASS_ACTIVITY_STOP_CRAWL;
   /** Batch filename prefix for exports */
   batchFilenamePrefix: string;
+  /** Maximum crawl count for this activity type */
+  maxCrawlCount: number;
   /** Empty state message */
   emptyStateMessage?: string;
   /** Container CSS class name */
@@ -57,6 +58,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({ config }) => {
     startCrawlSignal,
     stopCrawlSignal,
     batchFilenamePrefix,
+    maxCrawlCount,
     emptyStateMessage = 'No items found. Click "Start Crawl" to begin.',
     containerClassName = 'activity-container',
   } = config;
@@ -121,7 +123,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({ config }) => {
   } = useCrawlControl({
     completionSignal,
     crawlStateStorageKey: `${itemsStorageKey}_crawlInProgress`,
-    maxCrawlCount: MAX_CRAWL_COUNT_PER_TIME,
+    maxCrawlCount,
     itemCount: items.length,
     clearItems,
     startCrawl,
@@ -188,7 +190,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({ config }) => {
         isStopping={isStopping}
         isDownloading={isDownloading}
         isStartDisabled={!isDateRangeValid}
-        maxCrawlCount={MAX_CRAWL_COUNT_PER_TIME}
+        maxCrawlCount={maxCrawlCount}
         showDownload={items.length > 0}
         downloadProgress={downloadProgress.downloaded}
         downloadTotal={downloadProgress.total}

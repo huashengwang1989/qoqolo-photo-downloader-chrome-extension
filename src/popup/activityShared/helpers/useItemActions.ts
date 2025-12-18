@@ -14,11 +14,11 @@ export function useItemActions(item: Item) {
   const markdown = useMemo(() => buildMarkdownFromItem(item), [item]);
 
   const handleCopy = useCallback(async () => {
-      await navigator.clipboard.writeText(markdown);
+    await navigator.clipboard.writeText(markdown);
   }, [markdown]);
 
   const handleExport = useCallback(async () => {
-      await exportItem(item);
+    await exportItem(item);
   }, [item]);
 
   return {

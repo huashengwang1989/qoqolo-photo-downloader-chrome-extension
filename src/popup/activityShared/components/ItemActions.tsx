@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { ItemActions as SharedItemActions } from '@/shared/components/ItemActions';
-
 import { useItemActions } from '../helpers/useItemActions';
 
+import { ItemActions as SharedItemActions } from '@/shared/components/ItemActions';
 import type { Item } from '@/shared/types/item';
 
 interface ItemActionsProps {

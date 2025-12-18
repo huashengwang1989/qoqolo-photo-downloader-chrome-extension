@@ -7,6 +7,7 @@ import { collectItemsForClassActivity } from './collectItems';
 import { preCrawlScrollForClassActivity } from './preCrawlScroll';
 import { processItemForClassActivity } from './processItem';
 
+import { MAX_CRAWL_COUNT } from '@/configs';
 import { SIGNALS } from '@/shared/enums';
 import type { MonthDate } from '@/shared/types';
 import type { Item } from '@/shared/types/item';
@@ -31,6 +32,8 @@ export async function startCrawlForClassActivity(
     completionSignal: SIGNALS.CLASS_ACTIVITY_CRAWL_COMPLETE,
     collectItems: collectItemsForClassActivity,
     preCrawlScroll: preCrawlScrollForClassActivity,
+    getWrapper: () => document.querySelector<HTMLElement>('div.infinite-panel.posts-container'),
+    maxCrawlCount: MAX_CRAWL_COUNT.CLASS_ACTIVITY,
     processItem: async (item, dateRange, shouldStop) => {
       const itemWithDetails = await processItemForClassActivity(item, dateRange, shouldStop);
       if (itemWithDetails === null) {

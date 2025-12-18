@@ -4,7 +4,7 @@ import { CheckInOutMonthItem } from './components/CheckInOutMonthItem';
 import { exportBatchForCheckInOut } from './helpers/exportBatch';
 import { useCheckInOutItems } from './helpers/useCheckInOutItems';
 
-import { MAX_CRAWL_COUNT_PER_TIME } from '@/configs';
+import { MAX_CRAWL_COUNT } from '@/configs';
 import { CrawlActionsBar } from '@/shared/components/CrawlActionsBar';
 import { MonthDatePicker } from '@/shared/components/MonthDatePicker';
 import { SIGNALS } from '@/shared/enums';
@@ -62,7 +62,7 @@ const CheckInOut: React.FC = () => {
   } = useCrawlControl({
     completionSignal: SIGNALS.CHECK_IN_OUT_CRAWL_COMPLETE,
     crawlStateStorageKey: 'checkInOutCrawlItems_crawlInProgress',
-    maxCrawlCount: MAX_CRAWL_COUNT_PER_TIME,
+    maxCrawlCount: MAX_CRAWL_COUNT.CHECK_IN_OUT,
     itemCount: items.length,
     clearItems,
     startCrawl,
@@ -128,7 +128,7 @@ const CheckInOut: React.FC = () => {
         isStopping={isStopping}
         isDownloading={isDownloading}
         isStartDisabled={!isDateRangeValid}
-        maxCrawlCount={MAX_CRAWL_COUNT_PER_TIME}
+        maxCrawlCount={MAX_CRAWL_COUNT.CHECK_IN_OUT}
         showDownload={items.length > 0}
         downloadProgress={downloadProgress.downloaded}
         downloadTotal={downloadProgress.total}

@@ -2,6 +2,7 @@ import React from 'react';
 
 import { ActivityPage, type ActivityPageConfig } from '../activityShared';
 
+import { MAX_CRAWL_COUNT } from '@/configs';
 import { SIGNALS } from '@/shared/enums';
 
 import './ClassActivity.scss';
@@ -14,6 +15,7 @@ const classActivityConfig: ActivityPageConfig = {
   startCrawlSignal: SIGNALS.CLASS_ACTIVITY_START_CRAWL,
   stopCrawlSignal: SIGNALS.CLASS_ACTIVITY_STOP_CRAWL,
   batchFilenamePrefix: 'qoqolo-class-activity',
+  maxCrawlCount: MAX_CRAWL_COUNT.CLASS_ACTIVITY,
   containerClassName: 'class-activity-container',
 };
 

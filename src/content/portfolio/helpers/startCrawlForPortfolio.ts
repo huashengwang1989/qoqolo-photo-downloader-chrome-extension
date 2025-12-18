@@ -7,6 +7,7 @@ import { collectItemsForPortfolio } from './collectItems';
 import { handleCrawlItemForPortfolio } from './handleCrawlItem';
 import { preCrawlScrollForPortfolio } from './preCrawlScroll';
 
+import { MAX_CRAWL_COUNT } from '@/configs';
 import { SIGNALS } from '@/shared/enums';
 import type { MonthDate } from '@/shared/types';
 import type { PortfolioItem } from '@/shared/types/portfolio';
@@ -31,6 +32,8 @@ export async function startCrawlForPortfolio(
     completionSignal: SIGNALS.PORTFOLIO_CRAWL_COMPLETE,
     collectItems: collectItemsForPortfolio,
     preCrawlScroll: preCrawlScrollForPortfolio,
+    getWrapper: () => document.querySelector<HTMLElement>('div.infinite-panel.foliettes-container'),
+    maxCrawlCount: MAX_CRAWL_COUNT.PORTFOLIO,
     processItem: async (item, dateRange, _shouldStop) => {
       const result = await handleCrawlItemForPortfolio(item, dateRange);
 

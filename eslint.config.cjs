@@ -70,6 +70,14 @@ module.exports = [
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-empty-object-type': 'warn',
       '@typescript-eslint/no-empty-interface': 'warn',
+      '@typescript-eslint/no-shadow': [
+        'error',
+        {
+          ignoreTypeValueShadow: true, // Allow shadowing in type/value namespaces
+          ignoreFunctionTypeParameterNameValueShadow: true, // Allow shadowing in function type parameters
+        },
+      ],
+      'no-shadow': 'off', // Turn off base rule as it conflicts with TypeScript version
 
       /* ---------- Import order ---------- */
       'import/order': [

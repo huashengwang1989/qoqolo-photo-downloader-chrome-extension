@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { MAX_CRAWL_COUNT_PER_TIME } from '@/configs';
 import { SIGNALS } from '@/shared/enums';
 import type { BackgroundMessage } from '@/shared/types';
 
@@ -10,7 +9,7 @@ export interface UseCrawlControlOptions {
   /** Storage key for storing crawl in-progress state */
   crawlStateStorageKey: string;
   /** Maximum crawl count for timeout calculation */
-  maxCrawlCount?: number;
+  maxCrawlCount: number;
   /** Current item count (for timeout detection) */
   itemCount: number;
   /** Function to clear items when starting a new crawl */
@@ -39,7 +38,7 @@ export interface UseCrawlControlReturn {
 export function useCrawlControl({
   completionSignal,
   crawlStateStorageKey,
-  maxCrawlCount = MAX_CRAWL_COUNT_PER_TIME,
+  maxCrawlCount,
   itemCount,
   clearItems,
   startCrawl,

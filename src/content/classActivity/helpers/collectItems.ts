@@ -25,10 +25,14 @@ function extractPublishDateFromPanel(panel: HTMLDivElement): string {
 }
 
 export function collectItemsForClassActivity(options?: CollectItemsOptions): Item[] {
+  // Find the infinite-panel container first
+  const wrapper = document.querySelector<HTMLDivElement>('div.infinite-panel.posts-container');
+  if (!wrapper) {
+    return [];
+  }
+
   // Find all infinite-item panels
-  const panels = document.querySelectorAll<HTMLDivElement>(
-    'div.infinite-panel.posts-container div.infinite-item.post',
-  );
+  const panels = wrapper.querySelectorAll<HTMLDivElement>('div.infinite-item.post');
 
   // Map panels to items and de-duplicate by link
   const linkMap = new Map<string, Item>();

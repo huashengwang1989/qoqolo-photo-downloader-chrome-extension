@@ -11,12 +11,14 @@ import type { PortfolioItem } from '@/shared/types/portfolio';
  * @param allItems - Current items collection
  * @param dateRange - Date range to filter by
  * @param shouldStop - Stop flag reference
+ * @param getWrapper - Optional function to get the infinite-panel wrapper
  * @returns Updated items collection after scrolling, or null if no items in range
  */
 export async function preCrawlScrollForPortfolio(
   allItems: PortfolioItem[],
   dateRange: { from: MonthDate | null; to: MonthDate | null },
   shouldStop: { value: boolean },
+  getWrapper?: () => HTMLElement | null,
 ): Promise<PortfolioItem[] | null> {
-  return preCrawlScrollShared(allItems, dateRange, shouldStop, collectItemsForPortfolio);
+  return preCrawlScrollShared(allItems, dateRange, shouldStop, collectItemsForPortfolio, getWrapper);
 }

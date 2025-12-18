@@ -1,7 +1,11 @@
-/** For activity, this is the max item (activity) count that can be crawled at once.
- * For check-in check-out, this is the max months count that can be crawled at once.
+/**
+ * Maximum crawl counts per type
  */
-export const MAX_CRAWL_COUNT_PER_TIME = 30;
+export const MAX_CRAWL_COUNT = {
+  PORTFOLIO: 30, // Max portfolio items per crawl
+  CLASS_ACTIVITY: 50, // Max class activity items per crawl
+  CHECK_IN_OUT: 12, // Max months per crawl for check-in/out
+} as const;
 
 /**
  * URL regex patterns for page detection

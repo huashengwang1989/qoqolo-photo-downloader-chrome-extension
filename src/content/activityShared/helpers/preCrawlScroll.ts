@@ -8,6 +8,7 @@ import {
   areAllItemsBeforeFrom,
   areAllItemsAfterTo,
 } from '@/shared/utils/date';
+import { hasMoreContent } from './hasMoreContent';
 
 /**
  * Pre-crawl scroll logic for date range filtering
@@ -23,6 +24,7 @@ export async function preCrawlScroll(
   dateRange: { from: MonthDate | null; to: MonthDate | null },
   shouldStop: { value: boolean },
   collectItems: (options?: { maxCount?: number }) => Item[],
+  getWrapper?: () => HTMLElement | null,
 ): Promise<Item[] | null> {
   // Check if all initial items are before "From" date - if so, stop immediately
   // (items will only get older as we scroll, so no point continuing)
@@ -46,9 +48,46 @@ export async function preCrawlScroll(
       const trulyNewItems = newItems.filter((item) => !seenLinks.has(item.link));
 
       if (trulyNewItems.length === 0) {
-        // No new items loaded, we're done
-        console.info('[crawler] No more items loaded, stopping pre-crawl scroll');
-        break;
+        // No new items loaded, check if there's more content to load
+        const wrapper = getWrapper ? getWrapper() : null;
+        const moreContent = hasMoreContent(wrapper);
+
+        if (!moreContent) {
+          // No more content to load, we're done
+          console.info('[crawler] No more items loaded and no more content available, stopping pre-crawl scroll');
+          break;
+        }
+
+        // There's more content, retry up to 2 more times
+        let retryCount = 0;
+        const maxRetries = 2;
+        let foundNewItems = false;
+
+        while (retryCount < maxRetries && !foundNewItems && !shouldStop.value) {
+          console.info(`[crawler] No new items found but more content available, retrying (${retryCount + 1}/${maxRetries})...`);
+          await sleep(1000); // Wait 1 second before retry
+
+          const retryItems = collectItems();
+          const retryNewItems = retryItems.filter((item) => !seenLinks.has(item.link));
+
+          if (retryNewItems.length > 0) {
+            foundNewItems = true;
+            // Update newItems and trulyNewItems with retry results
+            newItems.length = 0;
+            newItems.push(...retryItems);
+            trulyNewItems.length = 0;
+            trulyNewItems.push(...retryNewItems);
+            break;
+          }
+
+          retryCount += 1;
+        }
+
+        if (!foundNewItems) {
+          // Still no new items after retries, we're done
+          console.info('[crawler] No new items found after retries, stopping pre-crawl scroll');
+          break;
+        }
       }
 
       // If all newly loaded items are before "From" date, stop (items will only get older)
