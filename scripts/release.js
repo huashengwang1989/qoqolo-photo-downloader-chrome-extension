@@ -18,7 +18,10 @@ import JSZip from 'jszip';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const rootDir = resolve(__dirname, '..');
+// Resolve root directory before any branch switching to ensure we always use the correct paths
+// If running from temp file, use environment variable; otherwise resolve from __dirname
+const rootDir = process.env.RELEASE_SCRIPT_ROOT_DIR || resolve(__dirname, '..');
+// Temp script must be in project root (where node_modules exists) for imports to work
 const TEMP_SCRIPT_PATH = resolve(rootDir, '.release-script-temp.js');
 
 // Check if we're running from temp file
@@ -31,22 +34,29 @@ const isRunningFromTemp = __filename === TEMP_SCRIPT_PATH;
   }
 
   try {
-    // Copy current script to temp file
+    // Copy current script to temp file in project root (where node_modules exists)
     const currentScriptContent = readFileSync(__filename, 'utf8');
-    writeFileSync(TEMP_SCRIPT_PATH, currentScriptContent);
+    // Ensure temp file is written to project root
+    const tempPath = resolve(rootDir, '.release-script-temp.js');
+    writeFileSync(tempPath, currentScriptContent);
     console.log('📋 Copied release script to temp file for stability during branch switching...\n');
 
-    // Re-execute from temp file
-    const nodeProcess = spawn('node', [TEMP_SCRIPT_PATH, ...process.argv.slice(2)], {
+    // Re-execute from temp file, passing project root as env var so temp script knows where it is
+    const nodeProcess = spawn('node', [tempPath, ...process.argv.slice(2)], {
       stdio: 'inherit',
-      cwd: rootDir,
+      cwd: rootDir, // Critical: run from project root so node_modules can be found
+      env: {
+        ...process.env,
+        RELEASE_SCRIPT_ROOT_DIR: rootDir, // Pass root dir to temp script
+      },
     });
 
     nodeProcess.on('exit', (code) => {
       // Clean up temp file
       try {
-        if (existsSync(TEMP_SCRIPT_PATH)) {
-          unlinkSync(TEMP_SCRIPT_PATH);
+        const tempPath = resolve(rootDir, '.release-script-temp.js');
+        if (existsSync(tempPath)) {
+          unlinkSync(tempPath);
         }
       } catch {
         // Ignore cleanup errors
@@ -59,8 +69,9 @@ const isRunningFromTemp = __filename === TEMP_SCRIPT_PATH;
       console.error('\n✗ Failed to execute temp script:', error.message);
       // Clean up temp file
       try {
-        if (existsSync(TEMP_SCRIPT_PATH)) {
-          unlinkSync(TEMP_SCRIPT_PATH);
+        const tempPath = resolve(rootDir, '.release-script-temp.js');
+        if (existsSync(tempPath)) {
+          unlinkSync(tempPath);
         }
       } catch {
         // Ignore cleanup errors
@@ -604,8 +615,9 @@ if (isRunningFromTemp) {
     .then(() => {
       // Clean up temp file
       try {
-        if (existsSync(TEMP_SCRIPT_PATH)) {
-          unlinkSync(TEMP_SCRIPT_PATH);
+        const tempPath = resolve(rootDir, '.release-script-temp.js');
+        if (existsSync(tempPath)) {
+          unlinkSync(tempPath);
         }
       } catch {
         // Ignore cleanup errors
@@ -615,8 +627,9 @@ if (isRunningFromTemp) {
       console.error('\n✗ Unexpected error:', error);
       // Clean up temp file
       try {
-        if (existsSync(TEMP_SCRIPT_PATH)) {
-          unlinkSync(TEMP_SCRIPT_PATH);
+        const tempPath = resolve(rootDir, '.release-script-temp.js');
+        if (existsSync(tempPath)) {
+          unlinkSync(tempPath);
         }
       } catch {
         // Ignore cleanup errors
