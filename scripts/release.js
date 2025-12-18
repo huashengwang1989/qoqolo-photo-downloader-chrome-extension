@@ -149,13 +149,22 @@ function updateChangelog(newVersion) {
   } else {
     // Find the first version section (after header) and insert new version before it
     // Look for the first "## [" that's not part of the header
-    const lines = changelogContent.split('\n');
+    // Safely split and filter to ensure we only have valid strings
+    const rawLines = changelogContent.split('\n') || [];
+    const lines = rawLines
+      .map((line) => (line != null ? String(line) : ''))
+      .filter((line) => line !== null && line !== undefined);
     let insertIndex = -1;
 
     // Find where to insert (after header, before first version)
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      if (line && typeof line === 'string' && line.match(/^## \[/)) {
+      if (
+        line &&
+        typeof line === 'string' &&
+        typeof line.trim === 'function' &&
+        line.match(/^## \[/)
+      ) {
         insertIndex = i;
         break;
       }
@@ -163,7 +172,17 @@ function updateChangelog(newVersion) {
 
     if (insertIndex === -1) {
       // No version section found, append after header
-      const emptyLineIndex = lines.findIndex((line) => line && line.trim() === '');
+      const emptyLineIndex = lines.findIndex((line) => {
+        if (line == null || typeof line !== 'string' || typeof line.trim !== 'function') {
+          return false;
+        }
+        try {
+          const trimmed = String(line).trim();
+          return trimmed === '';
+        } catch {
+          return false;
+        }
+      });
       insertIndex = emptyLineIndex >= 0 ? emptyLineIndex + 1 : lines.length;
     }
 
@@ -180,8 +199,18 @@ function updateChangelog(newVersion) {
     newChangelogContent = lines.join('\n');
   }
 
-  writeFileSync(changelogPath, newChangelogContent);
-  console.log(`\n✓ Updated CHANGELOG.md with version ${newVersion}`);
+  if (!newChangelogContent || typeof newChangelogContent !== 'string') {
+    console.warn('\n⚠️  Failed to generate new changelog content. Skipping changelog update.');
+    return;
+  }
+
+  try {
+    writeFileSync(changelogPath, newChangelogContent);
+    console.log(`\n✓ Updated CHANGELOG.md with version ${newVersion}`);
+  } catch (error) {
+    console.warn('\n⚠️  Failed to write CHANGELOG.md:', error.message);
+    // Don't fail the release if changelog update fails
+  }
 }
 
 // Recursively add files from directory to JSZip
@@ -406,7 +435,13 @@ async function main() {
     if (isDryRun) {
       console.log(`\n[DRY RUN] Would update CHANGELOG.md with version ${newVersion}`);
     } else {
-      updateChangelog(newVersion);
+      try {
+        updateChangelog(newVersion);
+      } catch (error) {
+        console.warn('\n⚠️  Failed to update CHANGELOG.md:', error.message);
+        console.warn('  Continuing with release...');
+        // Don't fail the release if changelog update fails
+      }
     }
 
     // Step 11: Commit version update
