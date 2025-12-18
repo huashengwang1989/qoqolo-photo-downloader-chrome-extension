@@ -109,6 +109,71 @@ function updatePackageVersion(newVersion) {
   console.log(`\n✓ Updated package.json version to ${newVersion}`);
 }
 
+// Update CHANGELOG.md with new version
+function updateChangelog(newVersion) {
+  const changelogPath = resolve(rootDir, 'CHANGELOG.md');
+
+  if (!existsSync(changelogPath)) {
+    console.warn('\n⚠️  CHANGELOG.md not found. Skipping changelog update.');
+    return;
+  }
+
+  const changelogContent = readFileSync(changelogPath, 'utf8');
+
+  // Get current date in YYYY-MM-DD format
+  const today = new Date();
+  const dateStr = today.toISOString().split('T')[0];
+
+  // Check if there's an "Unreleased" section
+  const unreleasedPattern = /^## \[Unreleased\]/m;
+
+  let newChangelogContent;
+
+  if (unreleasedPattern.test(changelogContent)) {
+    // Replace [Unreleased] with the new version and date
+    newChangelogContent = changelogContent.replace(
+      /^## \[Unreleased\]/m,
+      `## [${newVersion}] - ${dateStr}`,
+    );
+  } else {
+    // Find the first version section (after header) and insert new version before it
+    // Look for the first "## [" that's not part of the header
+    const lines = changelogContent.split('\n');
+    let insertIndex = -1;
+
+    // Find where to insert (after header, before first version)
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].match(/^## \[/)) {
+        insertIndex = i;
+        break;
+      }
+    }
+
+    if (insertIndex === -1) {
+      // No version section found, append after header
+      insertIndex = lines.findIndex((line) => line.trim() === '') + 1;
+      if (insertIndex === 0) {
+        insertIndex = lines.length;
+      }
+    }
+
+    // Insert new version section
+    const newSection = [
+      `## [${newVersion}] - ${dateStr}`,
+      '',
+      '### Added',
+      '',
+      '- (Add your changes here)',
+      '',
+    ];
+    lines.splice(insertIndex, 0, ...newSection);
+    newChangelogContent = lines.join('\n');
+  }
+
+  writeFileSync(changelogPath, newChangelogContent);
+  console.log(`\n✓ Updated CHANGELOG.md with version ${newVersion}`);
+}
+
 // Recursively add files from directory to JSZip
 function addDirectoryToZip(zip, dirPath, basePath = '') {
   const files = readdirSync(dirPath);
@@ -301,14 +366,21 @@ async function main() {
       updatePackageVersion(newVersion);
     }
 
+    // Step 10.5: Update CHANGELOG.md
+    if (isDryRun) {
+      console.log(`\n[DRY RUN] Would update CHANGELOG.md with version ${newVersion}`);
+    } else {
+      updateChangelog(newVersion);
+    }
+
     // Step 11: Commit version update
     const tagName = `v${newVersion}`;
     if (isDryRun) {
       console.log(
-        `\n[DRY RUN] Would commit package.json with message: "release: bump version to ${newVersion}"`,
+        `\n[DRY RUN] Would commit package.json and CHANGELOG.md with message: "release: bump version to ${newVersion}"`,
       );
     } else {
-      git('add package.json');
+      git('add package.json CHANGELOG.md');
       git(`commit -m "release: bump version to ${newVersion}"`);
     }
 
