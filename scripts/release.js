@@ -116,12 +116,17 @@ const isDryRun = process.argv.includes('--dry-run') || process.argv.includes('-d
 // Helper to run git commands
 function git(command, options = {}) {
   try {
-    return execSync(`git ${command}`, {
+    const result = execSync(`git ${command}`, {
       encoding: 'utf8',
       cwd: rootDir,
       stdio: options.silent ? 'pipe' : 'inherit',
       ...options,
-    }).trim();
+    });
+    // Handle case where execSync might return null (e.g., when switching branches)
+    if (result == null || typeof result !== 'string') {
+      return '';
+    }
+    return result.trim();
   } catch (error) {
     if (options.silent && error.status === 1) {
       return '';
@@ -221,8 +226,8 @@ function updateChangelog(newVersion) {
     return;
   }
 
-  if (!changelogContent || typeof changelogContent !== 'string') {
-    console.warn('\n⚠️  CHANGELOG.md is empty or invalid. Skipping changelog update.');
+  if (!changelogContent) {
+    console.warn('\n⚠️  CHANGELOG.md is empty. Skipping changelog update.');
     return;
   }
 
@@ -243,32 +248,12 @@ function updateChangelog(newVersion) {
     );
   } else {
     // Find the first version section (after header) and insert new version before it
-    // Look for the first "## [" that's not part of the header
-    // Safely split and filter to ensure we only have valid strings
-    const rawLines = changelogContent.split('\n') || [];
-    const lines = rawLines
-      .map((line) => {
-        if (line == null || line === undefined) {
-          return '';
-        }
-        try {
-          return String(line);
-        } catch {
-          return '';
-        }
-      })
-      .filter((line) => line !== null && line !== undefined && typeof line === 'string');
+    const lines = changelogContent.split('\n');
     let insertIndex = -1;
 
     // Find where to insert (after header, before first version)
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (
-        line &&
-        typeof line === 'string' &&
-        typeof line.trim === 'function' &&
-        line.match(/^## \[/)
-      ) {
+      if (lines[i].match(/^## \[/)) {
         insertIndex = i;
         break;
       }
@@ -276,28 +261,7 @@ function updateChangelog(newVersion) {
 
     if (insertIndex === -1) {
       // No version section found, append after header
-      const emptyLineIndex = lines.findIndex((line) => {
-        // Defensive checks for null/undefined/invalid values
-        if (line == null || line === undefined) {
-          return false;
-        }
-        if (typeof line !== 'string') {
-          try {
-            line = String(line);
-          } catch {
-            return false;
-          }
-        }
-        if (typeof line.trim !== 'function') {
-          return false;
-        }
-        try {
-          const trimmed = line.trim();
-          return trimmed === '';
-        } catch {
-          return false;
-        }
-      });
+      const emptyLineIndex = lines.findIndex((line) => line.trim() === '');
       insertIndex = emptyLineIndex >= 0 ? emptyLineIndex + 1 : lines.length;
     }
 
@@ -312,11 +276,6 @@ function updateChangelog(newVersion) {
     ];
     lines.splice(insertIndex, 0, ...newSection);
     newChangelogContent = lines.join('\n');
-  }
-
-  if (!newChangelogContent || typeof newChangelogContent !== 'string') {
-    console.warn('\n⚠️  Failed to generate new changelog content. Skipping changelog update.');
-    return;
   }
 
   try {
@@ -430,7 +389,7 @@ function prompt(question) {
         resolved = true;
         cleanup();
         // Normalize the answer: trim whitespace and handle null/undefined
-        const normalized = (answer || '').toString().trim();
+        const normalized = (answer || '').trim();
         resolve(normalized);
       }
     });
