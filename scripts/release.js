@@ -325,6 +325,16 @@ async function main() {
   const newVersion = incrementVersion(currentVersion, versionType);
   console.log(`\n📦 Version bump: ${currentVersion} → ${newVersion}`);
 
+  // Step 5.5: Remind user to update changelog
+  const changelogUpdated = await prompt(
+    '\nHave you updated Changelog? If not, please update at "[Unreleased]" section (yes/no): ',
+  );
+  if (changelogUpdated.toLowerCase() !== 'yes' && changelogUpdated.toLowerCase() !== 'y') {
+    console.log('\n✗ Please update the changelog at "[Unreleased]" section before releasing.');
+    console.log('  Release cancelled.');
+    process.exit(0);
+  }
+
   // Step 6: Confirm version
   const confirm = await prompt('\nProceed with this version? (yes/no): ');
   if (confirm.toLowerCase() !== 'yes' && confirm.toLowerCase() !== 'y') {
