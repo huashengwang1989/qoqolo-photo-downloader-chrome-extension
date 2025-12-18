@@ -28,11 +28,10 @@ const TEMP_SCRIPT_PATH = resolve(rootDir, '.release-script-temp.js');
 const isRunningFromTemp = __filename === TEMP_SCRIPT_PATH;
 
 // If not running from temp, copy script to temp and re-execute
-(async function bootstrap() {
-  if (isRunningFromTemp) {
-    return; // Already running from temp, continue with main script
-  }
+let shouldRunMain = isRunningFromTemp; // Only run main if already in temp mode
 
+if (!isRunningFromTemp) {
+  // We need to bootstrap - spawn temp process and exit this one
   try {
     // Copy current script to temp file in project root (where node_modules exists)
     const currentScriptContent = readFileSync(__filename, 'utf8');
@@ -79,16 +78,16 @@ const isRunningFromTemp = __filename === TEMP_SCRIPT_PATH;
       process.exit(1);
     });
 
-    // Wait indefinitely - the spawned process will handle everything
-    await new Promise(() => {
-      // Never resolves - the spawned process handles everything
-    });
+    // Don't run main() - the spawned process will handle everything
+    // Keep this process alive to handle the spawned process's exit
+    shouldRunMain = false;
   } catch (error) {
     console.error('\n✗ Failed to create temp script:', error.message);
     console.error('  Continuing with current script (may fail if branch switching occurs)...');
-    // Continue with current script as fallback - main() will run below
+    // Fallback: run main() in this process
+    shouldRunMain = true;
   }
-})();
+}
 
 const RELEASE_BRANCH = 'release';
 const MAIN_BRANCHES = ['main', 'master'];
@@ -663,41 +662,37 @@ async function main() {
   }
 }
 
-// Run main function (only if we're running from temp file, or bootstrap failed)
-if (isRunningFromTemp) {
+// Run main function (only if we should run it)
+if (shouldRunMain) {
   main()
     .then(() => {
-      // Clean up temp file
-      try {
-        const tempPath = resolve(rootDir, '.release-script-temp.js');
-        if (existsSync(tempPath)) {
-          unlinkSync(tempPath);
+      // Clean up temp file if we're running from temp
+      if (isRunningFromTemp) {
+        try {
+          const tempPath = resolve(rootDir, '.release-script-temp.js');
+          if (existsSync(tempPath)) {
+            unlinkSync(tempPath);
+          }
+        } catch {
+          // Ignore cleanup errors
         }
-      } catch {
-        // Ignore cleanup errors
       }
     })
     .catch((error) => {
       console.error('\n✗ Unexpected error:', error);
-      // Clean up temp file
-      try {
-        const tempPath = resolve(rootDir, '.release-script-temp.js');
-        if (existsSync(tempPath)) {
-          unlinkSync(tempPath);
+      // Clean up temp file if we're running from temp
+      if (isRunningFromTemp) {
+        try {
+          const tempPath = resolve(rootDir, '.release-script-temp.js');
+          if (existsSync(tempPath)) {
+            unlinkSync(tempPath);
+          }
+        } catch {
+          // Ignore cleanup errors
         }
-      } catch {
-        // Ignore cleanup errors
       }
       process.exit(1);
     });
-} else {
-  // Bootstrap will spawn a new process from temp file
-  // If bootstrap fails, wait a bit then run main as fallback
-  setTimeout(() => {
-    console.warn('\n⚠️  Bootstrap did not spawn new process, running main as fallback...');
-    main().catch((error) => {
-      console.error('\n✗ Unexpected error:', error);
-      process.exit(1);
-    });
-  }, 2000);
 }
+// If shouldRunMain is false, bootstrap spawned a new process and this process
+// is just waiting for it to exit (handled by the spawn event handlers above)
