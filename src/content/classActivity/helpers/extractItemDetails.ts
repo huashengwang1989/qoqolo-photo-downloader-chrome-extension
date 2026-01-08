@@ -1,6 +1,7 @@
 import { buildImageExportFilename } from '@/shared/helpers/imageExport';
 import { parseDatetimeToDateAndDatetime } from '@/shared/utils/date';
 import type { ItemDetails, ItemImage } from '@/shared/types/item';
+import { getImageMainUrl } from '@/content/helpers/getImageMainUrl';
 
 /**
  * Extract Class Activity item details from the infinite-item panel
@@ -59,8 +60,8 @@ export function extractItemDetailsForClassActivity(panel: HTMLDivElement): ItemD
         return; // Skip if no href
       }
 
-      // Convert relative URL to absolute URL
-      const url = new URL(href, location.origin).toString();
+      // Transform thumbnail URL to full-size image URL
+      const url = getImageMainUrl(href);
 
       // Get caption from span.bi-gallery-item-description
       const descriptionSpan = link.querySelector<HTMLSpanElement>(

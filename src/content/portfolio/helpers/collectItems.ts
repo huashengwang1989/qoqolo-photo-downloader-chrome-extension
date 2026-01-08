@@ -1,8 +1,11 @@
 import { formatDateToYYYYMMDD } from '@/shared/utils/date';
+import { checkIsDateInRange } from '@/shared/utils/dateRange';
 import type { PortfolioItem } from '@/shared/types/portfolio';
+import type { MonthDate } from '@/shared/types';
 
 export interface CollectItemsOptions {
   maxCount?: number;
+  dateRange?: { from: MonthDate | null; to: MonthDate | null };
 }
 
 /**
@@ -81,7 +84,18 @@ export function collectItemsForPortfolio(options?: CollectItemsOptions): Portfol
   // Convert map values to array
   let items = Array.from(linkMap.values());
 
+  // Filter by date range if provided
+  if (options?.dateRange) {
+    items = items.filter((item) => {
+      if (!item.publishDate) {
+        return true; // Include items without publish date
+      }
+      return checkIsDateInRange(item.publishDate, options.dateRange);
+    });
+  }
+
   // Limit to maxCount if provided and > 0
+  // maxCount now only counts items that pass the date range filter
   if (options?.maxCount && options.maxCount > 0 && items.length > options.maxCount) {
     items = items.slice(0, options.maxCount);
   }

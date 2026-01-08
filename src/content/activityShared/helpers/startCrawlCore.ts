@@ -1,15 +1,19 @@
+import { hasMoreContent } from './hasMoreContent';
+
 import type { Item } from '@/shared/types/item';
 import type { MonthDate } from '@/shared/types';
 import { sleep } from '@/shared/helpers/utils';
 import { SIGNALS } from '@/shared/enums';
-import { hasMoreContent } from './hasMoreContent';
 
 export interface StartCrawlCoreConfig<TItem extends Item> {
   storageKey: string;
   itemsUpdatedSignal: SIGNALS;
   itemAddedSignal: SIGNALS;
   completionSignal: SIGNALS;
-  collectItems: (options?: { maxCount?: number }) => TItem[];
+  collectItems: (options?: {
+    maxCount?: number;
+    dateRange?: { from: MonthDate | null; to: MonthDate | null };
+  }) => TItem[];
   preCrawlScroll: (
     allItems: TItem[],
     dateRange: { from: MonthDate | null; to: MonthDate | null },
@@ -72,7 +76,8 @@ export async function startCrawlCore<TItem extends Item>(
 
   // Track all processed item links to avoid duplicates
   const processedLinks = new Set<string>();
-  let allItems = collectItems({ maxCount: maxCrawlCount });
+  // collectItems now filters by dateRange during collection, so maxCount only counts items within range
+  let allItems = collectItems({ maxCount: maxCrawlCount, dateRange });
   const processedItems: TItem[] = [];
 
   // If no items found, send completion signal immediately
@@ -128,7 +133,7 @@ export async function startCrawlCore<TItem extends Item>(
 
     if (itemsToProcess.length === 0) {
       // No new items to process, check if more items loaded
-      const newItems = collectItems({ maxCount: maxCrawlCount });
+      const newItems = collectItems({ maxCount: maxCrawlCount, dateRange });
       // Filter out already processed items
       let trulyNewItems = newItems.filter((item) => !processedLinks.has(item.link));
 
@@ -139,7 +144,9 @@ export async function startCrawlCore<TItem extends Item>(
 
         if (!moreContent) {
           // No more content to load, we're done
-          console.info('[crawler] No more new items found and no more content available, crawl complete');
+          console.info(
+            '[crawler] No more new items found and no more content available, crawl complete',
+          );
           break;
         }
 
@@ -149,10 +156,12 @@ export async function startCrawlCore<TItem extends Item>(
         let foundNewItems = false;
 
         while (retryCount < maxRetries && !foundNewItems && !shouldStop.value) {
-          console.info(`[crawler] No new items found but more content available, retrying (${retryCount + 1}/${maxRetries})...`);
+          console.info(
+            `[crawler] No new items found but more content available, retrying (${retryCount + 1}/${maxRetries})...`,
+          );
           await sleep(1000); // Wait 1 second before retry
 
-          const retryItems = collectItems({ maxCount: maxCrawlCount });
+          const retryItems = collectItems({ maxCount: maxCrawlCount, dateRange });
           const retryNewItems = retryItems.filter((item) => !processedLinks.has(item.link));
 
           if (retryNewItems.length > 0) {
@@ -275,11 +284,14 @@ export async function startCrawlCore<TItem extends Item>(
 
     // After processing this batch, check for new items that may have loaded
     if (!shouldStop.value && processedItems.length < maxCrawlCount) {
-      const newItems = collectItems({ maxCount: maxCrawlCount });
+      const newItems = collectItems({ maxCount: maxCrawlCount, dateRange });
       let trulyNewItems = newItems.filter((item) => !processedLinks.has(item.link));
 
       if (trulyNewItems.length > 0) {
         console.info(`[crawler] Found ${trulyNewItems.length} new items, continuing crawl`);
+        console.info(
+          `[crawler] crawl from "${trulyNewItems[0].title}" to "${trulyNewItems[trulyNewItems.length - 1].title}"`,
+        );
         allItems = newItems;
       } else {
         // No new items found, check if there's more content to load
@@ -298,15 +310,19 @@ export async function startCrawlCore<TItem extends Item>(
         let foundNewItems = false;
 
         while (retryCount < maxRetries && !foundNewItems && !shouldStop.value) {
-          console.info(`[crawler] No new items found but more content available, retrying (${retryCount + 1}/${maxRetries})...`);
+          console.info(
+            `[crawler] No new items found but more content available, retrying (${retryCount + 1}/${maxRetries})...`,
+          );
           await sleep(1000); // Wait 1 second before retry
 
-          const retryItems = collectItems({ maxCount: maxCrawlCount });
+          const retryItems = collectItems({ maxCount: maxCrawlCount, dateRange });
           const retryNewItems = retryItems.filter((item) => !processedLinks.has(item.link));
 
           if (retryNewItems.length > 0) {
             foundNewItems = true;
-            console.info(`[crawler] Found ${retryNewItems.length} new items after retry, continuing crawl`);
+            console.info(
+              `[crawler] Found ${retryNewItems.length} new items after retry, continuing crawl`,
+            );
             allItems = retryItems;
             break;
           }

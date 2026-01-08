@@ -1,16 +1,16 @@
 import { processMonthForCheckInOut } from '../processMonth';
 
-import { sleep, safeSendMessage } from '@/shared/helpers/utils';
-import { SIGNALS } from '@/shared/enums';
-import type { MonthDate } from '@/shared/types';
-import type { CheckInOutMonthItem } from '@/shared/types/checkInOut';
-
 import { yearMonthFromMonthDate } from './yearMonthFromMonthDate';
 import { yearMonthToMonthYear } from './yearMonthToMonthYear';
 import { getCurrentYearMonth } from './getCurrentYearMonth';
 import { decrementYearMonth } from './decrementYearMonth';
 import { compareYearMonth } from './compareYearMonth';
 import { checkLikelyLoginSessionExpired } from './checkLikelyLoginSessionExpired';
+
+import type { CheckInOutMonthItem } from '@/shared/types/checkInOut';
+import type { MonthDate } from '@/shared/types';
+import { SIGNALS } from '@/shared/enums';
+import { sleep, safeSendMessage } from '@/shared/helpers/utils';
 
 const STORAGE_KEY = 'checkInOutCrawlItems';
 
@@ -169,4 +169,3 @@ export async function startCrawlForCheckInOut(
     console.error('[crawler] Failed to store final items:', error);
   }
 }
-

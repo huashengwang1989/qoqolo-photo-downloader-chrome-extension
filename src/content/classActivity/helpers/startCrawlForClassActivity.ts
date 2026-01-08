@@ -34,8 +34,8 @@ export async function startCrawlForClassActivity(
     preCrawlScroll: preCrawlScrollForClassActivity,
     getWrapper: () => document.querySelector<HTMLElement>('div.infinite-panel.posts-container'),
     maxCrawlCount: MAX_CRAWL_COUNT.CLASS_ACTIVITY,
-    processItem: async (item, dateRange, shouldStop) => {
-      const itemWithDetails = await processItemForClassActivity(item, dateRange, shouldStop);
+    processItem: async (item, _dateRange, _shouldStop) => {
+      const itemWithDetails = await processItemForClassActivity(item, _dateRange, _shouldStop);
       if (itemWithDetails === null) {
         return { success: false, skip: true };
       }

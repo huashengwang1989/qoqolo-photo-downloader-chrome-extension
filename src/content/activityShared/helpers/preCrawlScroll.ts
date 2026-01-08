@@ -1,3 +1,5 @@
+import { hasMoreContent } from './hasMoreContent';
+
 import type { Item } from '@/shared/types/item';
 import type { MonthDate } from '@/shared/types';
 import { scrollToEnd } from '@/shared/helpers/scroll';
@@ -8,7 +10,6 @@ import {
   areAllItemsBeforeFrom,
   areAllItemsAfterTo,
 } from '@/shared/utils/date';
-import { hasMoreContent } from './hasMoreContent';
 
 /**
  * Pre-crawl scroll logic for date range filtering
@@ -23,7 +24,10 @@ export async function preCrawlScroll(
   allItems: Item[],
   dateRange: { from: MonthDate | null; to: MonthDate | null },
   shouldStop: { value: boolean },
-  collectItems: (options?: { maxCount?: number }) => Item[],
+  collectItems: (options?: {
+    maxCount?: number;
+    dateRange?: { from: MonthDate | null; to: MonthDate | null };
+  }) => Item[],
   getWrapper?: () => HTMLElement | null,
 ): Promise<Item[] | null> {
   // Check if all initial items are before "From" date - if so, stop immediately
@@ -54,7 +58,9 @@ export async function preCrawlScroll(
 
         if (!moreContent) {
           // No more content to load, we're done
-          console.info('[crawler] No more items loaded and no more content available, stopping pre-crawl scroll');
+          console.info(
+            '[crawler] No more items loaded and no more content available, stopping pre-crawl scroll',
+          );
           break;
         }
 
@@ -64,7 +70,9 @@ export async function preCrawlScroll(
         let foundNewItems = false;
 
         while (retryCount < maxRetries && !foundNewItems && !shouldStop.value) {
-          console.info(`[crawler] No new items found but more content available, retrying (${retryCount + 1}/${maxRetries})...`);
+          console.info(
+            `[crawler] No new items found but more content available, retrying (${retryCount + 1}/${maxRetries})...`,
+          );
           await sleep(1000); // Wait 1 second before retry
 
           const retryItems = collectItems();

@@ -20,5 +20,11 @@ export async function preCrawlScrollForClassActivity(
   shouldStop: { value: boolean },
   getWrapper?: () => HTMLElement | null,
 ): Promise<Item[] | null> {
-  return preCrawlScrollShared(allItems, dateRange, shouldStop, collectItemsForClassActivity, getWrapper);
+  return preCrawlScrollShared(
+    allItems,
+    dateRange,
+    shouldStop,
+    collectItemsForClassActivity,
+    getWrapper,
+  );
 }

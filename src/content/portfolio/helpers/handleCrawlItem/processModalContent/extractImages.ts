@@ -1,5 +1,6 @@
 import type { PortfolioItemImage } from '@/shared/types/portfolio';
 import { buildImageExportFilename } from '@/shared/helpers/imageExport';
+import { getImageMainUrl } from '@/content/helpers/getImageMainUrl';
 
 /**
  * Extract images from modal carousel
@@ -23,8 +24,8 @@ export function extractImages(modal: HTMLDivElement): PortfolioItemImage[] {
       return; // Skip if no href
     }
 
-    // Convert relative URL to absolute URL
-    const url = new URL(href, location.origin).toString();
+    // Transform thumbnail URL to full-size image URL
+    const url = getImageMainUrl(href);
 
     // Get caption from inner span with className "description"
     const descriptionSpan = link.querySelector<HTMLSpanElement>('span.description');
