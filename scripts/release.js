@@ -41,9 +41,9 @@ if (!isRunningFromTemp) {
     console.log('📋 Copied release script to temp file for stability during branch switching...\n');
 
     // Re-execute from temp file, passing project root as env var so temp script knows where it is
-    // Use 'pipe' for stdin to avoid duplicate input, but 'inherit' for stdout/stderr
+    // Use 'inherit' for all stdio to ensure proper input/output handling
     const nodeProcess = spawn('node', [tempPath, ...process.argv.slice(2)], {
-      stdio: ['pipe', 'inherit', 'inherit'], // Pipe stdin, inherit stdout/stderr
+      stdio: 'inherit', // Inherit stdin, stdout, stderr directly
       cwd: rootDir, // Critical: run from project root so node_modules can be found
       env: {
         ...process.env,
@@ -51,19 +51,7 @@ if (!isRunningFromTemp) {
       },
     });
 
-    // Pipe stdin from parent to child process and pause parent stdin
-    // This prevents duplicate input - only the child process will read from stdin
-    process.stdin.pipe(nodeProcess.stdin);
-    process.stdin.pause(); // Pause parent stdin to prevent it from reading
-
     nodeProcess.on('exit', (code) => {
-      // Clean up stdin pipe
-      try {
-        process.stdin.unpipe(nodeProcess.stdin);
-        nodeProcess.stdin.end();
-      } catch {
-        // Ignore cleanup errors
-      }
       // Clean up temp file
       try {
         const tempPath = resolve(rootDir, '.release-script-temp.js');
@@ -79,13 +67,6 @@ if (!isRunningFromTemp) {
     // Handle errors
     nodeProcess.on('error', (error) => {
       console.error('\n✗ Failed to execute temp script:', error.message);
-      // Clean up stdin pipe
-      try {
-        process.stdin.unpipe(nodeProcess.stdin);
-        nodeProcess.stdin.end();
-      } catch {
-        // Ignore cleanup errors
-      }
       // Clean up temp file
       try {
         const tempPath = resolve(rootDir, '.release-script-temp.js');
